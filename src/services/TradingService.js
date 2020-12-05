@@ -37,7 +37,7 @@ class TradingService {
             console.log(err)
         }
         
-        await this.checkSignalLoop(this.pairData[pair], true)
+        await this.checkSignalLoop(this.pairData[pair], false)
 
     }
 
@@ -54,7 +54,6 @@ class TradingService {
             let signal = await strategy.getSignal(pairInstance)
             
             let openOrders = await client.marginOpenOrders({ symbol: pairInstance.symbol });
-            
             if (signal && (!openOrders || !openOrders.length) && processOrder) {
                 
 

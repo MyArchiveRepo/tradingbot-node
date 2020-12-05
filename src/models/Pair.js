@@ -60,10 +60,14 @@ module.exports = class Pair{
         return null;
     }
 
+    getQuantityByAsset(asset){
+        
+    }
+
     roundStep(qty, stepSize){
         if(BigNumber(qty).isInteger()) return qty;
-        const desiredDecimals = BigNumber.max(stepSize.indexOf('1') , 1, 0);
+        const desiredDecimals = BigNumber.max(stepSize.indexOf('1') - 1, 0);
         const decimalIndex = qty.indexOf('.');
-        return qty.slice(0, BigNumber.sum(decimalIndex,desiredDecimals));
+        return qty.slice(0, BigNumber.sum(decimalIndex,desiredDecimals,1));
     }
 }
