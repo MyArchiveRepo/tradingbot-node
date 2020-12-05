@@ -60,15 +60,15 @@ class TradingService {
 
                 if (signal.isBuy) {
                     try {
-                        let quantity = pairInstance.getValidQuantity(pairInstance.quoteAsset.free)
-                        let minNotional = pairInstance.checkMinNotional(quantity);
-                        if(quantity && minNotional){
+                        let maxQuote = pairInstance.getValidQuantity(pairInstance.quoteAsset.free)
+                        let minNotional = pairInstance.checkMinNotional(maxQuote);
+                        if(maxQuote && minNotional){
                             console.log('BUY !!!')
                             const order = await client.marginOrder({
                                 symbol: pairInstance.symbol,
                                 side: 'BUY',
                                 type: 'MARKET',
-                                quoteOrderQty: quantity,
+                                quoteOrderQty: maxQuote,
                                 sideEffectType: 'NO_SIDE_EFFECT'
                             });
                         }
