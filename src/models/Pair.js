@@ -60,8 +60,16 @@ module.exports = class Pair{
         return null;
     }
 
-    getQuantityByAsset(asset){
-        
+    getValidLeverageQuantity(qty, leverage){   
+        let totLeverage = BigNumber(qty).multipliedBy(leverage).multipliedBy(0.95);
+        return this.getValidQuantity(totLeverage.toString());
+    }
+
+    getDebts(asset) {
+        let borrowed = asset.borrowed;
+        let interest = asset.interest;
+        let secureMargin = BigNumber(borrowed).multipliedBy(0.05);
+        return BigNumber.sum(borrowed,interest,secureMargin).toString();
     }
 
     roundStep(qty, stepSize){
