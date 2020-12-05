@@ -13,6 +13,6 @@
     "bignumber.js": "^9.0.1",
     "binance-api-node": "^0.10.14",
     "dotenv": "^8.2.0",
-    "tulind": "^0.8.18"
+    "tulind": "^0.8.18" 
   }
 }
