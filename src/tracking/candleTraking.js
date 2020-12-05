@@ -16,7 +16,7 @@ module.exports = async (pairInstance, candle) => {
         //pairInstance.macd = macdResults[0]
         //pairInstance.macdSignal = macdResults[1]
         //pairInstance.macdHistogram = macdResults[2]
-
+        console.log("sma - " + pairInstance.lastSma())
     }
     catch(err) {
         console.error('SMA ERROR: ------ ');
