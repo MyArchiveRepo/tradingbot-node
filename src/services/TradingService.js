@@ -29,7 +29,7 @@ class TradingService {
 
         this.isRunning = true;
 
-        //await this.initPair(pair, period);
+        await this.initPair(pair, period);
         try{
             client.ws.candles(pair, period, async candle => candleTracking(this.pairData[pair], candle))
         }
