@@ -37,7 +37,7 @@ class TradingService {
             console.log(err)
         }
         
-        //await this.checkSignalLoop(this.pairData[pair], true)
+        await this.checkSignalLoop(this.pairData[pair], true)
 
     }
 
