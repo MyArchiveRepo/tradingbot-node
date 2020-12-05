@@ -26,10 +26,13 @@ class TradingService {
     start = async (pair, period) => {
 
         if (this.isRunning) throw new Error("Trading service is already running...")
-
-        this.isRunning = true;
+        else{
+            this.isRunning = true;
+            console.info("Strarting TradingService...\n\n")
+        }
 
         await this.initPair(pair, period);
+
         try{
             client.ws.candles(pair, period, async candle => candleTracking(this.pairData[pair], candle))
         }
@@ -37,7 +40,8 @@ class TradingService {
             console.log(err)
         }
         
-        await this.checkSignalLoop(this.pairData[pair], false)
+        console.info("Strarting checkSignalLoop...")
+        await this.checkSignalLoop(this.pairData[pair], true)
 
     }
 
@@ -103,6 +107,8 @@ class TradingService {
 
     initPair = async (symbol, period) => {
 
+        console.info("Strarting Pair initialization...\n\n")
+
         this.pairData[symbol] = new Pair(symbol);
         const candles = await client.candles({ symbol: symbol, interval: period });
         candles.forEach(candle => {
@@ -115,6 +121,7 @@ class TradingService {
 
         this.pairData[symbol].info = symbolInfo;
 
+        console.info("Pair initialization completed.\n\n")
     }
 
 
