@@ -26,8 +26,6 @@ class DummySmaStrategy {
             if (sma > candleClose && sma > candleOpen) sellIndicator++;
         }
 
-        console.log("BUY INDICATOR: " + buyIndicator)
-        console.log("SELL INDICATOR: " + sellIndicator)
         if(candleStrategyPeriod === buyIndicator) return { isBuy: true }
         if(candleStrategyPeriod === sellIndicator) return { isBuy: false }
 

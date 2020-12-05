@@ -43,10 +43,6 @@ class TradingService {
 
     checkSignalLoop = async (pairInstance, processOrder) => {
 
-        var today = new Date();
-        var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        console.log(time)
-
         const account = await client.marginAccountInfo(); //to insert in lib index.d.ts
         pairInstance.baseAsset = await account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
         pairInstance.quoteAsset = await account.userAssets.find(x => x.asset == pairInstance.info.quoteAsset);
