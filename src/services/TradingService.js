@@ -71,7 +71,7 @@ class TradingService {
                                 symbol: pairInstance.symbol,
                                 side: 'BUY',
                                 type: 'MARKET',
-                                quantity: pairInstance.quoteAsset.free,
+                                quantity: quantity,
                                 sideEffectType: 'NO_SIDE_EFFECT'
                             });
                         }
