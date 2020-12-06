@@ -16,7 +16,7 @@ class DummySmaStrategy {
         if(candleClose > sma) buyIndicator++;
         if(candleClose < sma) sellIndicator++;
 
-        for(let i=1; i<candleStrategyPeriod; i++) {
+        for(let i=2; i<candleStrategyPeriod; i++) {
             
             let sma = pairInstance.sma[(pairInstance.sma.length - i)];
             let candleOpen = pairInstance.candleOpens[(totCandles - i)]
@@ -26,8 +26,8 @@ class DummySmaStrategy {
             if (sma > candleClose && sma > candleOpen) sellIndicator++;
         }
 
-        if(candleStrategyPeriod === buyIndicator) return { isBuy: true }
-        if(candleStrategyPeriod === sellIndicator) return { isBuy: false }
+        if(candleStrategyPeriod - 1  === buyIndicator) return { isBuy: true }
+        if(candleStrategyPeriod - 1 === sellIndicator) return { isBuy: false }
 
         return null
     }

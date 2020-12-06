@@ -20,36 +20,32 @@ class TradingService {
     pairData = {};
     isRunning = false;
 
-    constructor() {}
+    constructor() { }
 
 
     start = async (pair, period) => {
 
         if (this.isRunning) throw new Error("Trading service is already running...")
-        else{
+        else {
             this.isRunning = true;
             console.info("Strarting TradingService...\n\n")
         }
 
         await this.initPair(pair, period);
 
-        try{
+        try {
             client.ws.candles(pair, period, async candle => candleTracking(this.pairData[pair], candle))
         }
-        catch(err){
+        catch (err) {
             console.log(err)
         }
-        
+
         console.info("Strarting checkSignalLoop...")
         await this.checkSignalLoop(this.pairData[pair], true)
 
     }
 
     checkSignalLoop = async (pairInstance, processOrder) => {
-
-        const account = await client.marginAccountInfo(); //to insert in lib index.d.ts
-        pairInstance.baseAsset = await account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
-        pairInstance.quoteAsset = await account.userAssets.find(x => x.asset == pairInstance.info.quoteAsset);
 
         try {
 
@@ -59,15 +55,18 @@ class TradingService {
             let signal = await strategy.getSignal(pairInstance)
 
             let openOrders = await client.marginOpenOrders();
-            if(openOrders.length>0) console.log(openOrders.toString())
+            if (openOrders.length > 0) console.log(openOrders.toString())
             if (signal && processOrder) {
-                
+
                 if (signal.isBuy) {
                     try {
+                        
+                        let account = await client.marginAccountInfo(); //to insert in lib index.d.ts
+                        pairInstance.baseAsset = await account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
                         let baseDebts = pairInstance.getDebts(pairInstance.baseAsset);
-                        let quantity =  pairInstance.getValidQuantity(baseDebts);
-                        if(Number(pairInstance.baseAsset.locked)) console.log(pairInstance.baseAsset.locked);
-                        if(quantity) {
+                        let quantity = pairInstance.getValidQuantity(baseDebts);
+                        if (Number(pairInstance.baseAsset.locked)) console.log(pairInstance.baseAsset.locked);
+                        if (quantity) {
                             console.log('REPAY - ' + quantity);
                             const order = await client.marginOrder({
                                 symbol: pairInstance.symbol,
@@ -78,20 +77,22 @@ class TradingService {
                             });
                             console.log(order)
                         }
-                        else{
-                            let maxQuote = pairInstance.getValidLeverageQuantity(pairInstance.quoteAsset.free,3)
-                            let minNotional = pairInstance.checkMinNotional(maxQuote);
-                            if(maxQuote && minNotional) {
-                                console.log('BUY !!!')
-                                const order = await client.marginOrder({
-                                    symbol: pairInstance.symbol,
-                                    side: 'BUY',
-                                    type: 'MARKET',
-                                    quoteOrderQty: maxQuote,
-                                    sideEffectType: 'MARGIN_BUY'
-                                });
-                            }
+                        
+                        account = await client.marginAccountInfo(); //to insert in lib index.d.ts
+                        pairInstance.quoteAsset = await account.userAssets.find(x => x.asset == pairInstance.info.quoteAsset);
+                        let maxQuote = pairInstance.getValidLeverageQuantity(pairInstance.quoteAsset.free, 3)
+                        let minNotional = pairInstance.checkMinNotional(maxQuote);
+                        if (maxQuote && minNotional) {
+                            console.log('BUY !!!')
+                            const order = await client.marginOrder({
+                                symbol: pairInstance.symbol,
+                                side: 'BUY',
+                                type: 'MARKET',
+                                quoteOrderQty: maxQuote,
+                                sideEffectType: 'MARGIN_BUY'
+                            });
                         }
+
                     } catch (err) {
                         console.error(err)
                     }
@@ -99,10 +100,12 @@ class TradingService {
                 else {
                     try {
 
+                        let account = await client.marginAccountInfo();
+                        pairInstance.quoteAsset = await account.userAssets.find(x => x.asset == pairInstance.info.quoteAsset);
                         let quoteDebts = pairInstance.getDebts(pairInstance.quoteAsset);
-                        let quantity =  pairInstance.getValidQuantity(quoteDebts);
-                        if(Number(pairInstance.baseAsset.locked)) console.log(pairInstance.baseAsset.locked);
-                        if(quantity) {
+                        let quantity = pairInstance.getValidQuantity(quoteDebts);
+                        if (Number(pairInstance.quoteAsset.locked)) console.log(pairInstance.baseAsset.locked);
+                        if (quantity) {
                             console.log('REPAY - ' + quantity);
                             const order = await client.marginOrder({
                                 symbol: pairInstance.symbol,
@@ -112,19 +115,22 @@ class TradingService {
                                 sideEffectType: 'AUTO_REPAY'
                             });
                             console.log(order)
-                        } else {
-                            quantity = pairInstance.getValidLeverageQuantity(pairInstance.baseAsset.free,3)
-                            if(quantity){
-                                console.log('SELL !!!')
-                                const order = await client.marginOrder({
-                                    symbol: pairInstance.symbol,
-                                    side: 'SELL',
-                                    type: 'MARKET',
-                                    sideEffectType: 'MARGIN_BUY',
-                                    quantity: quantity,
-                                });
-                            }
                         }
+
+                        account = await client.marginAccountInfo(); 
+                        pairInstance.baseAsset = await account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
+                        quantity = pairInstance.getValidLeverageQuantity(pairInstance.baseAsset.free, 3)
+                        if (quantity) {
+                            console.log('SELL !!!')
+                            const order = await client.marginOrder({
+                                symbol: pairInstance.symbol,
+                                side: 'SELL',
+                                type: 'MARKET',
+                                sideEffectType: 'MARGIN_BUY',
+                                quantity: quantity,
+                            });
+                        }
+
                     } catch (err) {
                         console.error(err)
                     }
@@ -150,7 +156,7 @@ class TradingService {
 
         const exchangeInfo = await client.exchangeInfo();
         const symbolInfo = exchangeInfo.symbols.find(x => x.symbol == symbol);
-        if(!symbolInfo) throw new Error('Invalid symbol')
+        if (!symbolInfo) throw new Error('Invalid symbol')
 
         this.pairData[symbol].info = symbolInfo;
 
