@@ -1,7 +1,10 @@
 const { candleController } = require('../controllers');
 const tulind = require('tulind');
+const PairWrapper = require('../classes/PairWrapper');
 
-module.exports = async (pairInstance, candle) => {  
+module.exports = async (symbol, candle) => {  
+    
+    let pairInstance = PairWrapper.get(symbol);
 
     pairInstance.updateLastCandle(candle)
     if(candle.isFinal) {
