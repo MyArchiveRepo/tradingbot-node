@@ -8,7 +8,7 @@ const wait_time = 800;
 
 class TradingService {
 
-    leverage = 1;
+    leverage = 2;
     wsCandles = null;
 
     constructor() {
