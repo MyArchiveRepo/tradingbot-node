@@ -12,7 +12,7 @@ module.exports = async (symbol, candle) => {
     }
 
     try{
-        let smaresults = await tulind.indicators.sma.indicator([pairInstance.candleCloses],[10])
+        let smaresults = await tulind.indicators.sma.indicator([pairInstance.candleCloses],[20])
         //let macdResults = await tulind.indicators.macd.indicator([pairInstance.candleCloses], [12,26,9])
 
         pairInstance.sma = smaresults[0]

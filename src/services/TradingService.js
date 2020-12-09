@@ -17,10 +17,10 @@ class TradingService {
 
     start = async (symbol, period) => {
 
+        this.Running = true;
         PairWrapper.add(await binance.initPair(symbol, period));
 
         this.wsCandles = binance.client.ws.candles(symbol, period, async candle => candleTracking(symbol, candle))
-        this.Running = true;
         await this.checkSignalLoop(symbol, true)
     }
 

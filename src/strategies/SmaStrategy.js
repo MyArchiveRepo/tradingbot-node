@@ -6,7 +6,7 @@ class DummySmaStrategy {
         if(!pairInstance.sma || !pairInstance.sma.length) return null;
         
         let totCandles = pairInstance.candleCloses.length;
-        let candleStrategyPeriod = 3
+        let candleStrategyPeriod = 2
         let buyIndicator = 0;
         let sellIndicator = 0;
 
