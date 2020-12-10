@@ -25,7 +25,7 @@ const initPair = async (symbol, period) => {
 
 const repayAllBaseDebts = async (pairInstance) => {
 
-    let account = await client.marginAccountInfo(); //to insert in lib index.d.ts
+    let account = await client.marginAccountInfo();
     let baseAsset = account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
     let debts = pairInstance.getDebts(baseAsset);
     let quantity = pairInstance.getValidQuantity(debts);

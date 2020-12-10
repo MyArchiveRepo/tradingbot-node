@@ -3,6 +3,7 @@ const { StrategyFactory } = require('../strategies');
 const { symbolStrategyController } = require('./../controllers');
 const binance = require('../exchange/binance');
 const PairWrapper = require('../classes/PairWrapper');
+const orderStatus = require('./orderStatus');
 const sleep = require('util').promisify(setTimeout)
 const wait_time = 800;
 
@@ -45,18 +46,31 @@ class TradingService {
 
                 if (signal.isBuy) {
                     try {
-                        await binance.repayAllBaseDebts(pairInstance);
-                        sleep(wait_time)
-                        await binance.mgBuyLong(pairInstance,this.leverage);
+
+                        if(pairInstance.orderStatus !== orderStatus.BUY_REPAY) {
+                            let repayBuyOrder = await binance.repayAllBaseDebts(pairInstance);
+                            if(repayBuyOrder) pairInstance.orderStatus = orderStatus.BUY_REPAY;
+                        }
+
+                        await sleep(wait_time)
+                        let buyOrder = await binance.mgBuyLong(pairInstance,this.leverage);
+                        if(buyOrder) pairInstance.orderStatus = orderStatus.BUY_LONG;
+
                     } catch (err) {
                         console.error(err)
                     }
                 }
                 else {
                     try {
-                        await binance.repayAllQuoteDebts(pairInstance);
-                        sleep(wait_time)
-                         await binance.mgSellShort(pairInstance,this.leverage);
+
+                        if(pairInstance.orderStatus !== orderStatus.SELL_REPAY) {
+                            let repaySellOrder = await binance.repayAllQuoteDebts(pairInstance);
+                            if(repaySellOrder) pairInstance.orderStatus = orderStatus.SELL_REPAY;
+                        }
+                        
+                        await sleep(wait_time)
+                        let sellOrder = await binance.mgSellShort(pairInstance,this.leverage);
+                        if(sellOrder) pairInstance.orderStatus = orderStatus.SELL_SHORT;
                    } catch (err) {
                         console.error(err)
                     }

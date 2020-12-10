@@ -28,6 +28,7 @@ module.exports = class Pair{
 
     constructor(symbol){
         this.symbol = symbol;
+        this.orderStatus = null;
     }
     
     addCandle(candle){
