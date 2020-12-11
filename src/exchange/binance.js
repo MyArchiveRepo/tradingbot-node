@@ -89,8 +89,7 @@ const mgSellShort = async (pairInstance,leverage) => {
     let account = await client.marginAccountInfo(); 
     let baseAsset = await account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
     let quantity = pairInstance.getValidLeverageQuantity(baseAsset.free, leverage)
-    let minNotional = pairInstance.checkMinNotional(quantity);
-    if (quantity && minNotional) {
+    if (quantity) {
         console.log('SELL !!!')
         return await client.marginOrder({
             symbol: pairInstance.symbol,
