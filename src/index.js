@@ -1,7 +1,7 @@
 require('dotenv').config()
 const { TredingService } = require('./services')
 
-const pair = 'XRPUSDT';
+const pair = 'ETHUSDT';
 const period = '15m';
 
 TredingService.start(pair,period);
