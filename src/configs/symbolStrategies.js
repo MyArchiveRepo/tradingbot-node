@@ -2,7 +2,7 @@ const { strategies } = require('./../strategies')
 
 module.exports = [
     {
-        symbol: 'XRPUSDT',
+        symbol: 'ETHUSDT',
         strategyName: strategies.SMA
     }
 ];

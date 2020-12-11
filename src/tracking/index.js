@@ -1,3 +1,4 @@
 module.exports = {
-    candleTracking: require('./candleTraking')
+    candleTracking: require('./candleTraking'),
+    candleTrackingBacktesting: require('./candleTrakingBacktesting')
 }
