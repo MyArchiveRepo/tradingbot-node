@@ -1,10 +1,10 @@
 const BigNumber = require('bignumber.js').default;
-
+const orderStatus = require('./../services/orderStatus');
 module.exports = class Pair{
 
     //symbol
     symbol = null;
-
+    stopLossPrct = null;
     //asset
     assetBase = null;
     assetQuote = null;
@@ -25,10 +25,57 @@ module.exports = class Pair{
     lastMacd = () => this.macd ? this.macd[this.macd.length -1] : null
     lastMacdSignal  = () => this.macdSignal ? this.macdSignal[this.macdSignal.length -1] : null
     lastMacdHistogram  = () => this.macdHistogram ? this.macdHistogram[this.macdHistogram.length -1] : null
+    lastCandleHigh = () => this.candleHighs ? this.candleHighs[this.candleHighs.length -1] : null
+    lastCandleLow = () => this.candleLows ? this.candleLows[this.candleLows.length -1] : null
+    lastCandleClose = () => this.candleCloses ? this.candleCloses[this.candleCloses.length -1] : null
 
-    constructor(symbol){
+    get stopLossBuy() {
+
+        if(this.orderStatus != orderStatus.BUY_LONG || !this.candleHighest) return null;
+        return this.candleHighest*1 - (this.candleHighest / 100 ) * this.stopLossPrct;
+
+    }
+
+    get stopLossSell() {
+
+        if(this.orderStatus != orderStatus.SELL_SHORT || !this.candleLowest) return null;
+        return this.candleLowest*1 + (this.candleLowest / 100 ) * this.stopLossPrct;
+        
+    }
+
+    get stopLoss() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.stopLossBuy;
+            case orderStatus.SELL_SHORT: return this.stopLossSell;
+            default: return null;
+        }
+    }
+
+    resetStopLoss(){
+        this.candleHighest = this.lastCandleHigh()
+        this.candleLowest = this.lastCandleLow()
+    }
+    
+    constructor(symbol,stopLossPrct){
         this.symbol = symbol;
         this.orderStatus = null;
+        this.stopLossPrct = stopLossPrct;
+    }
+
+    checkHitStopLoss() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.stopLoss > this.lastCandleClose();
+            case orderStatus.SELL_SHORT: return this.stopLoss < this.lastCandleClose();
+            default: return false;
+        }
+    }
+
+    checkHitStopLossTest() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.stopLoss > this.lastCandleLow();
+            case orderStatus.SELL_SHORT: return this.stopLoss < this.lastCandleHigh();
+            default: return false;
+        }
     }
     
     addCandle(candle){
@@ -36,6 +83,32 @@ module.exports = class Pair{
         this.candleCloses.push(candle.close)
         this.candleHighs.push(candle.high)
         this.candleLows.push(candle.low)
+        
+        this.updateLowest(candle.low)
+        this.updateHighest(candle.high)
+    }
+
+    updateLowest(price){
+        if(!this.candleLowest){
+            this.candleLowest = price;
+        }
+        else{
+            if(this.candleLowest < price){
+                this.candleLowest = price;
+            }
+        }
+    }
+
+    updateHighest(price){
+
+        if(!this.candleHighest){
+            this.candleHighest = price;
+        }
+        else{
+            if(this.candleHighest < price){
+                this.candleHighest = price;
+            }
+        }
     }
 
     updateLastCandle(candle){

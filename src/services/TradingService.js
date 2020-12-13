@@ -41,7 +41,6 @@ class TradingService {
             let strategy = strategyFactory.build(strategyType)
             let signal = await strategy.getSignal(pairInstance)
             
-            await sleep(wait_time)
             if (signal && processOrder) {
 
                 if (signal.isBuy) {
@@ -53,8 +52,11 @@ class TradingService {
                         }
 
                         await sleep(wait_time)
-                        let buyOrder = await binance.mgBuyLong(pairInstance,this.leverage);
-                        if(buyOrder) pairInstance.orderStatus = orderStatus.BUY_LONG;
+                        if(pairInstance.orderStatus !== orderStatus.BUY_CLOSED) {
+                            let buyOrder = await binance.mgBuyLong(pairInstance,this.leverage);
+                            if(buyOrder) pairInstance.orderStatus = orderStatus.BUY_LONG;
+                            pairInstance.resetStopLoss();
+                        }
 
                     } catch (err) {
                         console.error(err)
@@ -69,8 +71,12 @@ class TradingService {
                         }
                         
                         await sleep(wait_time)
-                        let sellOrder = await binance.mgSellShort(pairInstance,this.leverage);
-                        if(sellOrder) pairInstance.orderStatus = orderStatus.SELL_SHORT;
+                        if(pairInstance.orderStatus !== orderStatus.SELL_CLOSED) {
+                            let sellOrder = await binance.mgSellShort(pairInstance,this.leverage);
+                            if(sellOrder) pairInstance.orderStatus = orderStatus.SELL_SHORT;
+                            pairInstance.resetStopLoss();
+                        }
+
                    } catch (err) {
                         console.error(err)
                     }

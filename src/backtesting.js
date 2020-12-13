@@ -5,21 +5,23 @@ const { symbolStrategyController } = require('./controllers');
 let Pair = require('./classes/Pair');
 const tulind = require('tulind');
 const orderStatus = require('./services/orderStatus');
-
+const fs = require('fs');
+const { pathToFileURL } = require('url');
+const BigNumber = require('bignumber.js').default;
 
 const symbol = 'ETHUSDT';
-const period = '15m';
-const maPeriod = 10;
+const period = '3m';
+const maPeriod = 200;
+const stopLossPrct = 1000000;
 
-const startTime = new Date(2020, 11, 7).getTime()
-
-let endDate = new Date(2020, 11, 9);
+const startTime = new Date(2020,10,15).getTime()
+let endDate = new Date(2020, 11, 1);
 const endTime = endDate.getTime() - 1;
 
 const main = async () => {
      
-
-     let pairInstance = PairWrapper.add(new Pair(symbol));
+     let orders = []
+     let pairInstance = PairWrapper.add(new Pair(symbol,stopLossPrct));
 
      let strategyFactory = new StrategyFactory()
      let strategyType = await symbolStrategyController.getStrategyBySymbol(pairInstance.symbol)
@@ -32,26 +34,80 @@ const main = async () => {
         let smaResults = await tulind.indicators.sma.indicator([pairInstance.candleCloses],[maPeriod])
 
         pairInstance.sma = smaResults[0];
+
+        if(pairInstance.stopLoss) {
+            let hitStopLoss = pairInstance.checkHitStopLossTest();
+            if(hitStopLoss) {
+                orders[orders.length - 1].close = BigNumber(pairInstance.stopLoss).toString().replace(".", ",")
+                if(pairInstance.orderStatus == orderStatus.BUY_LONG){
+                    pairInstance.orderStatus = orderStatus.BUY_CLOSED;
+                }
+                else pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+            }
+        }
+
         let signal = await strategy.getSignal(pairInstance)
+        let newOrder = {}
 
         if (signal) {
-            let openPrice = pairInstance.candleOpens[pairInstance.candleOpens.length - 1];
+
             if (signal.isBuy) {
-                if(pairInstance.orderStatus !== orderStatus.BUY_LONG) {
-                    console.log("BUY " + openPrice);
+                if(pairInstance.orderStatus !== orderStatus.BUY_LONG &&
+                    pairInstance.orderStatus !== orderStatus.BUY_CLOSED ) {
+
                     pairInstance.orderStatus = orderStatus.BUY_LONG;
+                    newOrder = {
+                        date: new Date(candle.openTime).toLocaleString(),
+                        pair: pairInstance.symbol,
+                        bias: 'L',
+                        qty: 0,
+                        avgPrice: BigNumber(candle.open).toString().replace(".", ","),
+                        close: null
+                    }
+                    if(orders.length>0 && !orders[orders.length - 1].close) {
+                        orders[orders.length - 1].close = newOrder.avgPrice
+                    }
+                    orders.push(newOrder)
+                    pairInstance.resetStopLoss();
                 }
             }
             else {
-                if(pairInstance.orderStatus !== orderStatus.SELL_SHORT) {
-                    console.log("SELL " + openPrice);
+                if(pairInstance.orderStatus !== orderStatus.SELL_SHORT &&
+                    pairInstance.orderStatus !== orderStatus.SELL_CLOSED ) {
+
                     pairInstance.orderStatus = orderStatus.SELL_SHORT;
+
+                    newOrder = {
+                        date: new Date(candle.openTime).toLocaleString(),
+                        pair: pairInstance.symbol,
+                        bias: 'S',
+                        qty: 0,
+                        avgPrice: BigNumber(candle.open).toString().replace(".", ","),
+                        close: null
+                    }
+                    if(orders.length>0&& !orders[orders.length - 1].close) {
+                        orders[orders.length - 1].close = newOrder.avgPrice
+                    }
+                    orders.push(newOrder)
+                    pairInstance.resetStopLoss();
                 }
             }
 
         }
      }
-     
+
+
+    const csvOrders = convertToCSV(orders);
+
+    fs.appendFileSync(`${symbol}_${period}_sma${maPeriod}_SL${stopLossPrct}.csv`,csvOrders)
+}
+
+ const convertToCSV = (arr) => {
+    let array = [Object.keys(arr[0])].concat(arr)
+    array = array.slice(1);
+    return array.map(it => {
+      return Object.values(it).join(';')
+    }).join('\n')
 }
 
 const getHistory = async (symbol, period, startTime, endTime, candles) => {
