@@ -3,8 +3,9 @@ const Pair = require('../classes/Pair');
 
 const client = Binance({
     apiKey: process.env.API_KEY,
-    apiSecret: process.env.API_SECRET
+    apiSecret: process.env.API_SECRET,
 });
+
 
 const initPair = async (symbol, period) => {
 

@@ -1,3 +1,4 @@
+require('dotenv').config()
 const binance = require('./exchange/binance');
 let PairWrapper = require('./classes/PairWrapper');
 const { StrategyFactory } = require('./strategies');
@@ -8,20 +9,27 @@ const orderStatus = require('./services/orderStatus');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 const BigNumber = require('bignumber.js').default;
+BigNumber.config({ DECIMAL_PLACES: 3 })
 
-const symbol = 'ETHUSDT';
-const period = '3m';
-const maPeriod = 200;
-const stopLossPrct = 1000000;
+let startQuantity = 100;
+const symbol = process.env.SYMBOL;
+const period = process.env.PERIOD;
+const maPeriod = process.env.MA_PERIOD;
+const atrPeriod = process.env.ATR_PERIOD;
+const atrMultiplier = process.env.ATR_MULTIPLIER;
+const isActiveTakeProfit = false;
+const takeProfitMult = 9;
+const stopLossPrct = process.env.STOP_LOSS_PRCT;
 
-const startTime = new Date(2020,10,15).getTime()
-let endDate = new Date(2020, 11, 1);
+const startTime = new Date(2020,0,1).getTime()
+let endDate = new Date(2020, 1, 16);
 const endTime = endDate.getTime() - 1;
 
+let newQuantity = null;
 const main = async () => {
      
      let orders = []
-     let pairInstance = PairWrapper.add(new Pair(symbol,stopLossPrct));
+     let pairInstance = PairWrapper.add(new Pair(symbol,atrMultiplier,takeProfitMult,stopLossPrct));
 
      let strategyFactory = new StrategyFactory()
      let strategyType = await symbolStrategyController.getStrategyBySymbol(pairInstance.symbol)
@@ -32,18 +40,65 @@ const main = async () => {
         
         pairInstance.addCandle(candle);
         let smaResults = await tulind.indicators.sma.indicator([pairInstance.candleCloses],[maPeriod])
+        let emaResults = await tulind.indicators.ema.indicator([pairInstance.candleCloses],[maPeriod])
+
+        let atrResults = await tulind.indicators.atr.indicator(
+            [pairInstance.candleHighs,pairInstance.candleLows,pairInstance.candleCloses],
+            [atrPeriod]
+        );
 
         pairInstance.sma = smaResults[0];
+        pairInstance.ema = emaResults[0];
+        pairInstance.atr = atrResults[0];
 
-        if(pairInstance.stopLoss) {
-            let hitStopLoss = pairInstance.checkHitStopLossTest();
-            if(hitStopLoss) {
-                orders[orders.length - 1].close = BigNumber(pairInstance.stopLoss).toString().replace(".", ",")
-                if(pairInstance.orderStatus == orderStatus.BUY_LONG){
-                    pairInstance.orderStatus = orderStatus.BUY_CLOSED;
-                }
-                else pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+        let hitAtrStopLoss = pairInstance.checkHitAtrStopLossTest();
+        let hitStopLoss = pairInstance.checkHitStopLossTest();
+        let hitTakeProfit = pairInstance.checkHitAtrTakeProfitTest();
+        if(hitTakeProfit && isActiveTakeProfit){
+            orders[orders.length - 1].close = BigNumber(pairInstance.atrTakeProfit).toString().replace(".", ",")
+            if(pairInstance.orderStatus == orderStatus.BUY_LONG){
+                pairInstance.orderStatus = orderStatus.BUY_CLOSED;
             }
+            else pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+        }
+
+        if(hitAtrStopLoss || hitStopLoss) {
+
+            switch (pairInstance.orderStatus) {
+                case orderStatus.BUY_LONG:
+                    if(pairInstance.atrStopLoss < pairInstance.stopLoss && hitStopLoss)
+                        orders[orders.length - 1].close = BigNumber(pairInstance.stopLoss)
+                    else if(pairInstance.atrStopLoss > pairInstance.stopLoss && hitAtrStopLoss)
+                        orders[orders.length - 1].close = BigNumber(pairInstance.atrStopLoss)
+                    break;
+                case orderStatus.SELL_SHORT:
+                    if(pairInstance.atrStopLoss > pairInstance.stopLoss && hitStopLoss)
+                        orders[orders.length - 1].close = BigNumber(pairInstance.stopLoss)
+                    else if(pairInstance.atrStopLoss < pairInstance.stopLoss && hitAtrStopLoss)
+                        orders[orders.length - 1].close = BigNumber(pairInstance.atrStopLoss)
+                    break
+                default:
+                    break;
+            }
+
+            if(pairInstance.orderStatus == orderStatus.BUY_LONG){
+                pairInstance.orderStatus = orderStatus.BUY_CLOSED;
+            }
+            else pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+
+            let close = orders[orders.length - 1].close;
+            let open = orders[orders.length - 1].avgPrice;
+            let pl = close.minus(open).dividedBy(open).multipliedBy(100);
+
+            if(orders[orders.length - 1].bias == 'S') pl = pl.multipliedBy(-1);
+
+            let preQty = newQuantity ? newQuantity : BigNumber(startQuantity);
+            newQuantity = preQty.plus(preQty.dividedBy(100).multipliedBy(pl));
+            
+            console.log(`${orders[orders.length - 1].date} : ${newQuantity}$ ${pl}%`)
+            console.log(`---`)
+            continue;
+
         }
 
         let signal = await strategy.getSignal(pairInstance)
@@ -53,7 +108,9 @@ const main = async () => {
 
             if (signal.isBuy) {
                 if(pairInstance.orderStatus !== orderStatus.BUY_LONG &&
-                    pairInstance.orderStatus !== orderStatus.BUY_CLOSED ) {
+                    pairInstance.orderStatus !== orderStatus.BUY_CLOSED 
+                    && ( orders.length == 0 || pairInstance.orderStatus == orderStatus.SELL_CLOSED )
+                    ) {
 
                     pairInstance.orderStatus = orderStatus.BUY_LONG;
                     newOrder = {
@@ -61,19 +118,21 @@ const main = async () => {
                         pair: pairInstance.symbol,
                         bias: 'L',
                         qty: 0,
-                        avgPrice: BigNumber(candle.open).toString().replace(".", ","),
-                        close: null
+                        avgPrice: BigNumber(candle.open),
+                        close: null,
                     }
+                    pairInstance.positionEntry = candle.open;
                     if(orders.length>0 && !orders[orders.length - 1].close) {
                         orders[orders.length - 1].close = newOrder.avgPrice
                     }
                     orders.push(newOrder)
-                    pairInstance.resetStopLoss();
                 }
             }
             else {
                 if(pairInstance.orderStatus !== orderStatus.SELL_SHORT &&
-                    pairInstance.orderStatus !== orderStatus.SELL_CLOSED ) {
+                    pairInstance.orderStatus !== orderStatus.SELL_CLOSED 
+                    && ( orders.length == 0 || pairInstance.orderStatus == orderStatus.BUY_CLOSED )
+                    ) {
 
                     pairInstance.orderStatus = orderStatus.SELL_SHORT;
 
@@ -82,14 +141,14 @@ const main = async () => {
                         pair: pairInstance.symbol,
                         bias: 'S',
                         qty: 0,
-                        avgPrice: BigNumber(candle.open).toString().replace(".", ","),
-                        close: null
+                        avgPrice: BigNumber(candle.open),
+                        close: null,
                     }
+                    pairInstance.positionEntry = candle.open;
                     if(orders.length>0&& !orders[orders.length - 1].close) {
                         orders[orders.length - 1].close = newOrder.avgPrice
                     }
                     orders.push(newOrder)
-                    pairInstance.resetStopLoss();
                 }
             }
 
@@ -99,7 +158,7 @@ const main = async () => {
 
     const csvOrders = convertToCSV(orders);
 
-    fs.appendFileSync(`${symbol}_${period}_sma${maPeriod}_SL${stopLossPrct}.csv`,csvOrders)
+    fs.appendFileSync(`${symbol}_${period}_ema${maPeriod}_SL${stopLossPrct}_ATR_TP_${takeProfitMult}_ATR${atrPeriod}*${atrMultiplier}.csv`,csvOrders)
 }
 
  const convertToCSV = (arr) => {
@@ -119,7 +178,7 @@ const getHistory = async (symbol, period, startTime, endTime, candles) => {
         interval: period,
         startTime: startTime,
         endTime: endTime,
-        limit: 300
+        limit: 1000
     });
 
     let lastClose = newcandles[newcandles.length-1].closeTime

@@ -17,9 +17,12 @@ module.exports = class Pair{
 
     // indicator data
     sma = null;
+    atr = null;
     macd = null;
     macdSignal = null;
     macdHistogram = null;
+
+    positionEntry = null;
 
     lastSma = () => this.sma ? this.sma[this.sma.length -1] : null
     lastMacd = () => this.macd ? this.macd[this.macd.length -1] : null
@@ -27,39 +30,105 @@ module.exports = class Pair{
     lastMacdHistogram  = () => this.macdHistogram ? this.macdHistogram[this.macdHistogram.length -1] : null
     lastCandleHigh = () => this.candleHighs ? this.candleHighs[this.candleHighs.length -1] : null
     lastCandleLow = () => this.candleLows ? this.candleLows[this.candleLows.length -1] : null
+    previousCandleHigh  = () => this.candleHighs ? this.candleHighs[this.candleHighs.length - 2] : null
+    previousCandleLow  = () => this.candleLows ? this.candleLows[this.candleLows.length - 2] : null
+    previousCandleOpen  = () => this.candleOpens ? this.candleOpens[this.candleOpens.length - 2] : null
     lastCandleClose = () => this.candleCloses ? this.candleCloses[this.candleCloses.length -1] : null
+    lastAtr = () => this.atr ? this.atr[this.atr.length -1] : null
 
-    get stopLossBuy() {
-
-        if(this.orderStatus != orderStatus.BUY_LONG || !this.candleHighest) return null;
-        return this.candleHighest*1 - (this.candleHighest / 100 ) * this.stopLossPrct;
-
-    }
-
-    get stopLossSell() {
-
-        if(this.orderStatus != orderStatus.SELL_SHORT || !this.candleLowest) return null;
-        return this.candleLowest*1 + (this.candleLowest / 100 ) * this.stopLossPrct;
-        
-    }
-
-    get stopLoss() {
+    get atrStopLoss() {
         switch (this.orderStatus) {
-            case orderStatus.BUY_LONG: return this.stopLossBuy;
-            case orderStatus.SELL_SHORT: return this.stopLossSell;
+            case orderStatus.BUY_LONG: return this.getAtrStopLossBuy();
+            case orderStatus.SELL_SHORT: return this.getAtrStopLossSell();
             default: return null;
         }
     }
 
-    resetStopLoss(){
-        this.candleHighest = this.lastCandleHigh()
-        this.candleLowest = this.lastCandleLow()
+    get atrTakeProfit() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.getAtrTakeProfitBuy();
+            case orderStatus.SELL_SHORT: return this.getAtrTakeProfitSell();
+            default: return null;
+        }
+    }
+
+    get stopLoss() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.getStopLossBuy();
+            case orderStatus.SELL_SHORT: return this.getStopLossSell();
+            default: return null;
+        }
     }
     
-    constructor(symbol,stopLossPrct){
+    constructor(symbol,atrMultiplier,takeProfit,stopLossPrct){
         this.symbol = symbol;
         this.orderStatus = null;
         this.stopLossPrct = stopLossPrct;
+        this.takeProfitMult = takeProfit;
+        this.atrMultiplier = atrMultiplier;
+    }
+
+
+    getAtrStopLossBuy(){
+        if(this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
+        return this.previousCandleLow()*1 - this.lastAtr() * this.atrMultiplier;
+    }
+
+    getAtrStopLossSell(){
+        if(this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
+        return this.previousCandleHigh()*1 + this.lastAtr() * this.atrMultiplier;
+    }
+
+    getAtrTakeProfitBuy(){
+        if(this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
+        return this.previousCandleOpen()*1 + this.lastAtr() * this.takeProfitMult;
+    }
+
+    getAtrTakeProfitSell(){
+        if(this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
+        return this.previousCandleOpen()*1 - this.lastAtr() * this.takeProfitMult;
+    }
+
+    getStopLossBuy(){
+        if(this.orderStatus != orderStatus.BUY_LONG || !this.positionEntry ) return null;
+        return this.positionEntry*1 - (this.positionEntry / 100 ) * this.stopLossPrct;
+    }
+
+    getStopLossSell(){
+        if(this.orderStatus != orderStatus.SELL_SHORT || !this.positionEntry) return null;
+        return this.positionEntry*1 + (this.positionEntry / 100 ) * this.stopLossPrct;
+    }
+
+    checkHitAtrStopLoss() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.atrStopLoss > this.lastCandleClose();
+            case orderStatus.SELL_SHORT: return this.atrStopLoss < this.lastCandleClose();
+            default: return false;
+        }
+    }
+
+    checkHitAtrStopLossTest() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.atrStopLoss > this.lastCandleLow();
+            case orderStatus.SELL_SHORT: return this.atrStopLoss < this.lastCandleHigh();
+            default: return false;
+        }
+    }
+
+    checkHitAtrTakeProfit() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.atrTakeProfit < this.lastCandleClose();
+            case orderStatus.SELL_SHORT: return this.atrTakeProfit > this.lastCandleClose();
+            default: return false;
+        }
+    }
+
+    checkHitAtrTakeProfitTest() {
+        switch (this.orderStatus) {
+            case orderStatus.BUY_LONG: return this.atrTakeProfit < this.lastCandleHigh();
+            case orderStatus.SELL_SHORT: return this.atrTakeProfit > this.lastCandleLow();
+            default: return false;
+        }
     }
 
     checkHitStopLoss() {
@@ -72,8 +141,8 @@ module.exports = class Pair{
 
     checkHitStopLossTest() {
         switch (this.orderStatus) {
-            case orderStatus.BUY_LONG: return this.stopLoss > this.lastCandleLow();
-            case orderStatus.SELL_SHORT: return this.stopLoss < this.lastCandleHigh();
+            case orderStatus.BUY_LONG: return this.stopLoss > this.lastCandleLow()
+            case orderStatus.SELL_SHORT: return this.stopLoss < this.lastCandleHigh()
             default: return false;
         }
     }
@@ -83,32 +152,6 @@ module.exports = class Pair{
         this.candleCloses.push(candle.close)
         this.candleHighs.push(candle.high)
         this.candleLows.push(candle.low)
-        
-        this.updateLowest(candle.low)
-        this.updateHighest(candle.high)
-    }
-
-    updateLowest(price){
-        if(!this.candleLowest){
-            this.candleLowest = price;
-        }
-        else{
-            if(this.candleLowest < price){
-                this.candleLowest = price;
-            }
-        }
-    }
-
-    updateHighest(price){
-
-        if(!this.candleHighest){
-            this.candleHighest = price;
-        }
-        else{
-            if(this.candleHighest < price){
-                this.candleHighest = price;
-            }
-        }
     }
 
     updateLastCandle(candle){
@@ -133,6 +176,7 @@ module.exports = class Pair{
         }
         return null;
     }
+
 
     getValidLeverageQuantity(qty, leverage){   
         let totLeverage = BigNumber(qty).multipliedBy(leverage).multipliedBy(0.95);

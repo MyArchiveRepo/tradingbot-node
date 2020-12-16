@@ -1,6 +1,7 @@
 const strategies = require('./strategies')
 const DummySmaStrategy = require('./DummySmaStrategy')
 const SmaStrategy = require('./SmaStrategy')
+const EmaStrategy = require('./EmaStrategy')
 module.exports = class StrategyFactory {
 
     build = (strategyType) => {
@@ -10,6 +11,8 @@ module.exports = class StrategyFactory {
         switch(strategyType){
             case strategies.DUMMY_SMA:
             return new DummySmaStrategy()
+            case strategies.EMA:
+            return new EmaStrategy()
             default:
             return new SmaStrategy()
         }
