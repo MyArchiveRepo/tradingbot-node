@@ -10,36 +10,45 @@ const wait_time = 800;
 class TradingService {
 
     leverage = 2;
-    wsCandles = null;
+    wsCandles = {};
 
-    constructor(app) {
+    constructor() {
+        if(TradingService.instance == null) {
+            this.pairData = {};
+            TradingService.instance = this
+        }
         this.binance = new Exchange();
-        this.app = app;
-        this.app.enable('RUNNING');
+        return TradingService.instance
     }
 
     start = async (symbol, period) => {
+        this.Running = true;
         PairWrapper.add(await this.binance.initPair(symbol, period));
         console.log("service sarted with: " + symbol)
         this.wsCandles = this.binance.client.ws.candles(symbol, period, async candle => candleTracking(symbol, candle))
-        this.checkSignalLoop(symbol, true)
+        this.checkSignalLoop(symbol, false)
     }
 
     stop = async () => {
+        console.log("stopping...")
+        this.Running = false;
         this.wsCandles();
     }
 
     checkSignalLoop = async (symbol, processOrder) => {
 
         try {
-            if(!this.app.disable('RUNNING')) return;
+            if(!this.Running){
+                console.log("Exit from check signal loop.")
+                return;
+            }
             let pairInstance = PairWrapper.get(symbol)
 
             let strategyFactory = new StrategyFactory()
             let strategyType = await symbolStrategyController.getStrategyBySymbol(pairInstance.symbol)
             let strategy = strategyFactory.build(strategyType)
             let signal = await strategy.getSignal(pairInstance)
-            
+            await sleep(wait_time)
             if (signal && processOrder) {
 
                 if (signal.isBuy) {
@@ -86,10 +95,11 @@ class TradingService {
             console.log(err);
         }
 
-        await thischeckSignalLoop(symbol, true)
+        await this.checkSignalLoop(symbol, true)
     }
 
 
 }
 
-module.exports = TradingService
+const tradingService = new TradingService()
+module.exports = tradingService;

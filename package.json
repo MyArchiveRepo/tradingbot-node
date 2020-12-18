@@ -12,6 +12,7 @@
   "dependencies": {
     "bignumber.js": "^9.0.1",
     "binance-api-node": "^0.10.14",
+    "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "tulind": "^0.8.18"

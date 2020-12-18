@@ -1,6 +1,9 @@
 const router = require('express').Router();
 const TradingController = require('./TradingController')
 
-module.exports = (app) => {
-    router.route('/start').post(TradingController.start);
-}
+router
+.post('/start',TradingController.start)
+.post('/stop', TradingController.stop)
+.get('/status', TradingController.getStatus)
+
+module.exports = router;

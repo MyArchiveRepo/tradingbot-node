@@ -160,11 +160,7 @@ const main = async () => {
      }
 
     let csvOrders = "";
-
-    
     csvOrders = convertToCSV(orders);
-
-
     fs.writeFileSync(`${symbol}_${period}_ema${maPeriod}_SL${stopLossPrct}_ATR_TP_${takeProfitMult}_ATR${atrPeriod}*${atrMultiplier}.csv`,csvOrders)
 }
 
