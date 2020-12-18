@@ -17,14 +17,21 @@ module.exports = class Pair{
 
     // indicator data
     sma = null;
+    smaLong = null;
+    ema = null;
+    emaLong = null;
     atr = null;
     macd = null;
     macdSignal = null;
     macdHistogram = null;
 
     positionEntry = null;
+    waitStatus = null;
 
     lastSma = () => this.sma ? this.sma[this.sma.length -1] : null
+    lastSmaLong = () => this.smaLong ? this.smaLong[this.smaLong.length -1] : null
+    lastEma = () => this.ema ? this.ema[this.ema.length -1] : null
+    lastEmaLong = () => this.emaLong ? this.emaLong[this.emaLong.length -1] : null
     lastMacd = () => this.macd ? this.macd[this.macd.length -1] : null
     lastMacdSignal  = () => this.macdSignal ? this.macdSignal[this.macdSignal.length -1] : null
     lastMacdHistogram  = () => this.macdHistogram ? this.macdHistogram[this.macdHistogram.length -1] : null
@@ -195,5 +202,10 @@ module.exports = class Pair{
         const desiredDecimals = BigNumber.max(stepSize.indexOf('1') - 1, 0);
         const decimalIndex = qty.indexOf('.');
         return qty.slice(0, BigNumber.sum(decimalIndex,desiredDecimals,1));
+    }
+
+    getWaitStatus() {
+        if(this.lastCandleClose() > this.lastSma()) return orderStatus.WAIT_FOR_SHORT;
+        else return orderStatus.WAIT_FOR_LONG;
     }
 }

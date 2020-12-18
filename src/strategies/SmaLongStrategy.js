@@ -4,7 +4,8 @@ class SmaStrategy {
 
     getSignal = async (pairInstance) => {
         if(!pairInstance.sma || !pairInstance.sma.length) return null;
-        
+        if(!pairInstance.smaLong || !pairInstance.smaLong.length) return null;
+
         let totCandles = pairInstance.candleCloses.length;
         let candleStrategyPeriod = 2
         let buyIndicator = 0;
@@ -26,8 +27,8 @@ class SmaStrategy {
             if (sma > candleClose && sma > candleOpen) sellIndicator++;
         }
 
-        if(candleStrategyPeriod - 1  === buyIndicator) return { isBuy: true }
-        if(candleStrategyPeriod - 1 === sellIndicator) return { isBuy: false }
+        if(candleStrategyPeriod - 1  === buyIndicator && pairInstance.lastSma() > pairInstance.lastSmaLong()) return { isBuy: true }
+        if(candleStrategyPeriod - 1 === sellIndicator && pairInstance.lastSma() < pairInstance.lastSmaLong()) return { isBuy: false }
 
         return null
     }

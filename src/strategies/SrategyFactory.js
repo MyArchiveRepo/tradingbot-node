@@ -1,7 +1,8 @@
 const strategies = require('./strategies')
-const DummySmaStrategy = require('./DummySmaStrategy')
 const SmaStrategy = require('./SmaStrategy')
 const EmaStrategy = require('./EmaStrategy')
+const EmaLongStrategy = require('./EmaLongStrategy')
+const SmaLongStrategy = require('./SmaLongStrategy')
 module.exports = class StrategyFactory {
 
     build = (strategyType) => {
@@ -9,12 +10,16 @@ module.exports = class StrategyFactory {
         if(!strategies[strategyType]) throw new Error("Strategy is not defined")
     
         switch(strategyType){
-            case strategies.DUMMY_SMA:
-            return new DummySmaStrategy()
+            case strategies.SMA:
+            return new SmaStrategy()
             case strategies.EMA:
             return new EmaStrategy()
+            case strategies.SMA_LONG:
+            return new SmaLongStrategy()
+            case strategies.EMA_LONG:
+            return new EmaLongStrategy()
             default:
-            return new SmaStrategy()
+            return null;
         }
 
     }

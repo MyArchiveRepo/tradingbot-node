@@ -1,8 +1,8 @@
 require('dotenv').config()
-const binance = require('./exchange/binance');
+const Exchange = require('./exchange/binance');
 let PairWrapper = require('./classes/PairWrapper');
 const { StrategyFactory } = require('./strategies');
-const { symbolStrategyController } = require('./controllers');
+const symbolStrategyController = require('./controllers/symbolStrategyController');
 let Pair = require('./classes/Pair');
 const tulind = require('tulind');
 const orderStatus = require('./services/orderStatus');
@@ -11,18 +11,20 @@ const { pathToFileURL } = require('url');
 const BigNumber = require('bignumber.js').default;
 BigNumber.config({ DECIMAL_PLACES: 3 })
 
+let binance = new Exchange()
 let startQuantity = 100;
 const symbol = process.env.SYMBOL;
 const period = process.env.PERIOD;
 const maPeriod = process.env.MA_PERIOD;
+const maMultiplier = process.env.MA_MULTIPLIER;
 const atrPeriod = process.env.ATR_PERIOD;
 const atrMultiplier = process.env.ATR_MULTIPLIER;
 const isActiveTakeProfit = false;
-const takeProfitMult = 9;
+const takeProfitMult = 7;
 const stopLossPrct = process.env.STOP_LOSS_PRCT;
 
-const startTime = new Date(2020,0,1).getTime()
-let endDate = new Date(2020, 1, 16);
+const startTime = new Date(process.env.START_DATE).getTime()
+let endDate = new Date(process.env.END_DATE);
 const endTime = endDate.getTime() - 1;
 
 let newQuantity = null;
@@ -40,7 +42,7 @@ const main = async () => {
         
         pairInstance.addCandle(candle);
         let smaResults = await tulind.indicators.sma.indicator([pairInstance.candleCloses],[maPeriod])
-        let emaResults = await tulind.indicators.ema.indicator([pairInstance.candleCloses],[maPeriod])
+        let smaLongResults = await tulind.indicators.sma.indicator([pairInstance.candleCloses],[maPeriod*maMultiplier])
 
         let atrResults = await tulind.indicators.atr.indicator(
             [pairInstance.candleHighs,pairInstance.candleLows,pairInstance.candleCloses],
@@ -48,7 +50,9 @@ const main = async () => {
         );
 
         pairInstance.sma = smaResults[0];
-        pairInstance.ema = emaResults[0];
+        pairInstance.smaLong = smaLongResults[0];
+        //pairInstance.ema = emaResults[0];
+        //pairInstance.emaLong = emaLongResults[0];
         pairInstance.atr = atrResults[0];
 
         let hitAtrStopLoss = pairInstance.checkHitAtrStopLossTest();
@@ -66,12 +70,14 @@ const main = async () => {
 
             switch (pairInstance.orderStatus) {
                 case orderStatus.BUY_LONG:
+                    pairInstance.waitStatus = pairInstance.getWaitStatus();
                     if(pairInstance.atrStopLoss < pairInstance.stopLoss && hitStopLoss)
                         orders[orders.length - 1].close = BigNumber(pairInstance.stopLoss)
                     else if(pairInstance.atrStopLoss > pairInstance.stopLoss && hitAtrStopLoss)
                         orders[orders.length - 1].close = BigNumber(pairInstance.atrStopLoss)
                     break;
                 case orderStatus.SELL_SHORT:
+                    pairInstance.waitStatus = pairInstance.getWaitStatus();
                     if(pairInstance.atrStopLoss > pairInstance.stopLoss && hitStopLoss)
                         orders[orders.length - 1].close = BigNumber(pairInstance.stopLoss)
                     else if(pairInstance.atrStopLoss < pairInstance.stopLoss && hitAtrStopLoss)
@@ -103,7 +109,7 @@ const main = async () => {
 
         let signal = await strategy.getSignal(pairInstance)
         let newOrder = {}
-
+        
         if (signal) {
 
             if (signal.isBuy) {
@@ -111,7 +117,6 @@ const main = async () => {
                     pairInstance.orderStatus !== orderStatus.BUY_CLOSED 
                     && ( orders.length == 0 || pairInstance.orderStatus == orderStatus.SELL_CLOSED )
                     ) {
-
                     pairInstance.orderStatus = orderStatus.BUY_LONG;
                     newOrder = {
                         date: new Date(candle.openTime).toLocaleString(),
@@ -133,7 +138,6 @@ const main = async () => {
                     pairInstance.orderStatus !== orderStatus.SELL_CLOSED 
                     && ( orders.length == 0 || pairInstance.orderStatus == orderStatus.BUY_CLOSED )
                     ) {
-
                     pairInstance.orderStatus = orderStatus.SELL_SHORT;
 
                     newOrder = {
@@ -155,10 +159,13 @@ const main = async () => {
         }
      }
 
+    let csvOrders = "";
 
-    const csvOrders = convertToCSV(orders);
+    
+    csvOrders = convertToCSV(orders);
 
-    fs.appendFileSync(`${symbol}_${period}_ema${maPeriod}_SL${stopLossPrct}_ATR_TP_${takeProfitMult}_ATR${atrPeriod}*${atrMultiplier}.csv`,csvOrders)
+
+    fs.writeFileSync(`${symbol}_${period}_ema${maPeriod}_SL${stopLossPrct}_ATR_TP_${takeProfitMult}_ATR${atrPeriod}*${atrMultiplier}.csv`,csvOrders)
 }
 
  const convertToCSV = (arr) => {

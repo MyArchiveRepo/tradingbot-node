@@ -1,4 +1,3 @@
-const { candleController } = require('../controllers');
 const tulind = require('tulind');
 const PairWrapper = require('../classes/PairWrapper');
 

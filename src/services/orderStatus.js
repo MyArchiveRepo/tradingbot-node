@@ -5,4 +5,6 @@ module.exports = {
     BUY_LONG: "BUY_LONG",
     BUY_CLOSED: "BUY_CLOSED",
     SELL_CLOSED: "SELL_CLOSED",
+    WAIT_FOR_LONG: "WAIT_FOR_LONG",
+    WAIT_FOR_SHORT: "WAIT_FOR_SHORT",
 }
