@@ -41,7 +41,7 @@ class Exchange {
                 symbol: pairInstance.symbol,
                 side: 'BUY',
                 type: 'MARKET',
-                quantity: quantity,
+                quoteOrderQty: quantity,
                 sideEffectType: 'AUTO_REPAY'
             });
         }
