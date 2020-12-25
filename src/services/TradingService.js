@@ -77,7 +77,7 @@ class TradingService {
                         let buyOrder = await this.binance.mgBuyLong(pairInstance,this.leverage);
                         if(buyOrder){
                             pairInstance.orderStatus = orderStatus.BUY_LONG;
-                            pairInstance.positionEntry = buyOrder.price;
+                            pairInstance.positionEntry = buyOrder.fills[0].price;
                             console.log("ORDER",buyOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
@@ -94,7 +94,7 @@ class TradingService {
                         let sellOrder = await this.binance.mgSellShort(pairInstance,this.leverage);
                         if(sellOrder) {
                             pairInstance.orderStatus = orderStatus.SELL_SHORT;
-                            pairInstance.positionEntry = sellOrder.price;
+                            pairInstance.positionEntry = sellOrder.fills[0].price;
                             console.log("ORDER",sellOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
