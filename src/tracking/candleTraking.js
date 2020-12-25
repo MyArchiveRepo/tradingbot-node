@@ -12,12 +12,8 @@ module.exports = async (symbol, candle) => {
 
     try{
         let smaresults = await tulind.indicators.sma.indicator([pairInstance.candleCloses],[200])
-        //let macdResults = await tulind.indicators.macd.indicator([pairInstance.candleCloses], [12,26,9])
 
         pairInstance.sma = smaresults[0]
-        //pairInstance.macd = macdResults[0]
-        //pairInstance.macdSignal = macdResults[1]
-        //pairInstance.macdHistogram = macdResults[2]
     }
     catch(err) {
         console.error('SMA ERROR: ------ ');

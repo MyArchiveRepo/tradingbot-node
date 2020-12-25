@@ -67,12 +67,12 @@ module.exports = class Pair{
         }
     }
     
-    constructor(symbol,atrMultiplier,takeProfit,stopLossPrct){
-        this.symbol = symbol;
-        this.orderStatus = null;
-        this.stopLossPrct = stopLossPrct;
-        this.takeProfitMult = takeProfit;
-        this.atrMultiplier = atrMultiplier;
+    constructor(config) {
+        this.orderStatus = orderStatus.INITIAL;
+        this.symbol = config.symbol;
+        this.stopLossPrct = config.stopLossPrct;
+        this.takeProfitMult = config.takeProfit;
+        this.atrMultiplier = config.atrMultiplier;
     }
 
 

@@ -1,5 +1,5 @@
 module.exports = {
-    tradingController: require('../routes/trading/TradingController'),
-    candleController: require('./candleController'),
-    symbolStrategyController: require('./symbolStrategyController')
+    tradingController: require('./tradingController'),
+    symbolStrategyController: require('./symbolStrategyController'),
+    backtestingController: require('./backtestingController')
 };

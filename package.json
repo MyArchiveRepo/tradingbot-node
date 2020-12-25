@@ -4,14 +4,14 @@
   "description": "Trading bot",
   "main": "server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node src/trading.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Cataldo Malerba",
   "license": "ISC",
   "dependencies": {
     "bignumber.js": "^9.0.1",
-    "binance-api-node": "^0.10.14",
+    "binance-api-node": "^0.10.16",
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",

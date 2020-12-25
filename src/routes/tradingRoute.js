@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const TradingController = require('./TradingController')
+const TradingController = require('./trading/TradingController')
 
 router
 .post('/start',TradingController.start)

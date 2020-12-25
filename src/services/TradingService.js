@@ -1,5 +1,5 @@
 const { candleTracking } = require('./../tracking');
-const { StrategyFactory } = require('../strategies');
+const StrategyFactory  = require('../strategies/SrategyFactory');
 const { symbolStrategyController } = require('./../controllers');
 const Exchange = require('../exchange/binance');
 const PairWrapper = require('../classes/PairWrapper');
@@ -11,22 +11,22 @@ class TradingService {
 
     leverage = 2;
     wsCandles = {};
-
-    constructor() {
-        if(TradingService.instance == null) {
-            this.pairData = {};
-            TradingService.instance = this
-        }
+    config = {};
+    constructor(config) {
         this.binance = new Exchange();
-        return TradingService.instance
+        this.symbol = config.symbol;
+        this.period = config.period;
+        this.config = config;
+        let Strategy = StrategyFactory.build(config.strategy)
+        this.strategy = new Strategy(config);
     }
 
-    start = async (symbol, period) => {
+    async start(){
         this.Running = true;
-        PairWrapper.add(await this.binance.initPair(symbol, period));
-        console.log("service sarted with: " + symbol)
-        this.wsCandles = this.binance.client.ws.candles(symbol, period, async candle => candleTracking(symbol, candle))
-        this.checkSignalLoop(symbol, false)
+        PairWrapper.add(await this.binance.initPair(this.config));
+        console.log("service sarted with: " + this.symbol)
+        this.wsCandles = this.binance.client.ws.candles(this.symbol, this.period, async candle => this.strategy.candleTracking(candle))
+        this.checkSignalLoop(true)
     }
 
     stop = async () => {
@@ -35,54 +35,64 @@ class TradingService {
         this.wsCandles();
     }
 
-    checkSignalLoop = async (symbol, processOrder) => {
+    checkSignalLoop = async (processOrder) => {
 
         try {
             if(!this.Running){
                 console.log("Exit from check signal loop.")
                 return;
             }
-            let pairInstance = PairWrapper.get(symbol)
+            let pairInstance = PairWrapper.get(this.symbol)
 
-            let strategyFactory = new StrategyFactory()
-            let strategyType = await symbolStrategyController.getStrategyBySymbol(pairInstance.symbol)
-            let strategy = strategyFactory.build(strategyType)
-            let signal = await strategy.getSignal(pairInstance)
+
+            try{
+                let hitAtrStopLoss = pairInstance.checkHitAtrStopLoss();
+                let hitStopLoss = pairInstance.checkHitStopLoss();
+    
+                if(hitAtrStopLoss || hitStopLoss){
+    
+                    if(pairInstance.orderStatus == orderStatus.BUY_LONG){
+                        let closeBuy = await this.binance.mgCloseBuyLong();
+                        if(closeBuy) pairInstance.orderStatus = orderStatus.BUY_CLOSED;
+                    }
+    
+                    if(pairInstance.orderStatus == orderStatus.SELL_SHORT){
+                        let closeSell = await this.binance.mgCloseSellShort();
+                        if(closeSell) pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+                    }
+                }
+            }
+            catch(err) {
+                console.error(err);
+            }
+
+            let signal = await this.strategy.getSignal(pairInstance)
             await sleep(wait_time)
             if (signal && processOrder) {
 
-                if (signal.isBuy) {
+                if (signal.isBuy && checkEntryLongConditions(pairInstance)) {
                     try {
 
-                        if(pairInstance.orderStatus !== orderStatus.BUY_REPAY) {
-                            let repayBuyOrder = await this.repayAllBaseDebts(pairInstance);
-                            if(repayBuyOrder) pairInstance.orderStatus = orderStatus.BUY_REPAY;
-                        }
-
                         await sleep(wait_time)
-                        if(pairInstance.orderStatus !== orderStatus.BUY_CLOSED) {
-                            let buyOrder = await this.binance.mgBuyLong(pairInstance,this.leverage);
-                            if(buyOrder) pairInstance.orderStatus = orderStatus.BUY_LONG;
-                            pairInstance.resetStopLoss();
+                        let buyOrder = await this.binance.mgBuyLong(pairInstance,this.leverage);
+                        if(buyOrder){
+                            pairInstance.orderStatus = orderStatus.BUY_LONG;
+                            pairInstance.positionEntry = sellOrder.price;
                         }
 
                     } catch (err) {
                         console.error(err)
                     }
                 }
-                else {
-                    try {
 
-                        if(pairInstance.orderStatus !== orderStatus.SELL_REPAY) {
-                            let repaySellOrder = await this.binance.repayAllQuoteDebts(pairInstance);
-                            if(repaySellOrder) pairInstance.orderStatus = orderStatus.SELL_REPAY;
-                        }
+                if(!signal.isBuy && checkEntryShortConditions(pairInstance)) {
+                    try {
                         
                         await sleep(wait_time)
-                        if(pairInstance.orderStatus !== orderStatus.SELL_CLOSED) {
-                            let sellOrder = await this.binance.mgSellShort(pairInstance,this.leverage);
-                            if(sellOrder) pairInstance.orderStatus = orderStatus.SELL_SHORT;
-                            pairInstance.resetStopLoss();
+                        let sellOrder = await this.binance.mgSellShort(pairInstance,this.leverage);
+                        if(sellOrder) {
+                            pairInstance.orderStatus = orderStatus.SELL_SHORT;
+                            pairInstance.positionEntry = sellOrder.price;
                         }
 
                    } catch (err) {
@@ -95,11 +105,20 @@ class TradingService {
             console.log(err);
         }
 
-        await this.checkSignalLoop(symbol, true)
+        await this.checkSignalLoop(true)
     }
 
 
 }
 
-const tradingService = new TradingService()
-module.exports = tradingService;
+const checkEntryLongConditions = (pairInstance) => {
+    return pairInstance.orderStatus !== orderStatus.BUY_LONG &&
+    (pairInstance.orderStatus == orderStatus.INITIAL || pairInstance.orderStatus == orderStatus.SELL_CLOSED);
+}
+
+const checkEntryShortConditions = (orders, pairInstance) => {
+    return pairInstance.orderStatus !== orderStatus.SELL_SHORT &&
+    (pairInstance.orderStatus == orderStatus.INITIAL || pairInstance.orderStatus == orderStatus.BUY_CLOSED);
+}
+
+module.exports = TradingService

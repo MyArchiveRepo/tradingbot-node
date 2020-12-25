@@ -8,7 +8,10 @@ module.exports = async (symbol, candle) => {
 
     try{
         let smaresults = await tulind.indicators.sma.indicator([pairInstance.candleCloses],[20])
+        let smaSlowresults = await tulind.indicators.smaSlow.indicator([pairInstance.candleCloses],[50])
+
         pairInstance.sma = smaresults[0]
+        pairInstance.smaSlow = smaSlowresults[0]
 
     }
     catch(err) {
