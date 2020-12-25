@@ -78,6 +78,7 @@ class TradingService {
                         if(buyOrder){
                             pairInstance.orderStatus = orderStatus.BUY_LONG;
                             pairInstance.positionEntry = buyOrder.price;
+                            console.log("ORDER",buyOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
 
@@ -94,6 +95,7 @@ class TradingService {
                         if(sellOrder) {
                             pairInstance.orderStatus = orderStatus.SELL_SHORT;
                             pairInstance.positionEntry = sellOrder.price;
+                            console.log("ORDER",sellOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
 
