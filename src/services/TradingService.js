@@ -77,7 +77,8 @@ class TradingService {
                         let buyOrder = await this.binance.mgBuyLong(pairInstance,this.leverage);
                         if(buyOrder){
                             pairInstance.orderStatus = orderStatus.BUY_LONG;
-                            pairInstance.positionEntry = sellOrder.price;
+                            pairInstance.positionEntry = buyOrder.price;
+                            console.log("ENTRY",pairInstance.positionEntry)
                         }
 
                     } catch (err) {
@@ -93,6 +94,7 @@ class TradingService {
                         if(sellOrder) {
                             pairInstance.orderStatus = orderStatus.SELL_SHORT;
                             pairInstance.positionEntry = sellOrder.price;
+                            console.log("ENTRY",pairInstance.positionEntry)
                         }
 
                    } catch (err) {
