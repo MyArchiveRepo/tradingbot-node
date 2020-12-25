@@ -52,12 +52,12 @@ class TradingService {
                 if(hitAtrStopLoss || hitStopLoss){
     
                     if(pairInstance.orderStatus == orderStatus.BUY_LONG){
-                        let closeBuy = await this.binance.mgCloseBuyLong();
+                        let closeBuy = await this.binance.repayAllQuoteDebts();
                         if(closeBuy) pairInstance.orderStatus = orderStatus.BUY_CLOSED;
                     }
     
                     if(pairInstance.orderStatus == orderStatus.SELL_SHORT){
-                        let closeSell = await this.binance.mgCloseSellShort();
+                        let closeSell = await this.binance.repayAllBaseDebts();
                         if(closeSell) pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                     }
                 }
