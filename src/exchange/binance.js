@@ -1,6 +1,6 @@
 const Binance = require('binance-api-node').default;
 const Pair = require('../classes/Pair');
-
+const BigNumber = require('bignumber.js').default;
 
 class Exchange {
     
@@ -20,7 +20,7 @@ class Exchange {
         candles.forEach(candle => {
             pairInstance.addCandle(candle)
         });
-    
+        let account = await this.client.marginAccountInfo();
         const exchangeInfo = await this.client.exchangeInfo();
         const symbolInfo = exchangeInfo.symbols.find(x => x.symbol == config.symbol);
         if (!symbolInfo) throw new Error('Invalid symbol')
@@ -32,13 +32,9 @@ class Exchange {
 
     async mgCloseSellShort(){
         let account = await this.client.marginAccountInfo();
-        let baseAsset = account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
-        let base = BigNumber.sum(
-            baseAsset.borrowed,
-            baseAsset.interest,
-            baseAsset.free);
-        let quantity = pairInstance.getValidQuantity(base);
-        
+        let quoteAsset = account.userAssets.find(x => x.asset == pairInstance.info.quoteAsset);
+        let quantity = pairInstance.getValidQuantity(quoteAsset.free);
+
         if (quantity) {
             console.log('REPAY - ' + quantity);
             return await this.client.marginOrder({
@@ -55,13 +51,8 @@ class Exchange {
 
     async mgCloseBuyLong(){
         let account = await this.client.marginAccountInfo();
-        let quoteAsset = await account.userAssets.find(x => x.asset == pairInstance.info.quoteAsset);
-        let quote = BigNumber.sum(
-            quoteAsset.borrowed,
-            quoteAsset.interest,
-            quoteAsset.free);
-
-        let quantity = pairInstance.getValidQuantity(quote);
+        let baseAsset = account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
+        let quantity = pairInstance.getValidQuantity(baseAsset.free);
     
         if (quantity) {
             console.log('REPAY - ' + quantity);
@@ -69,7 +60,7 @@ class Exchange {
                 symbol: pairInstance.symbol,
                 side: 'SELL',
                 type: 'MARKET',
-                quoteOrderQty: quantity,
+                quantity: quantity,
                 sideEffectType: 'AUTO_REPAY'
             });
         }
@@ -90,7 +81,7 @@ class Exchange {
                 symbol: pairInstance.symbol,
                 side: 'BUY',
                 type: 'MARKET',
-                quantity: quantity,
+                quoteOrderQty: quantity,
                 sideEffectType: 'AUTO_REPAY'
             });
         }

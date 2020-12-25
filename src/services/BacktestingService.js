@@ -16,11 +16,7 @@ class BacktestingingService {
         if(isCorrectConfig(config)){
             this.config = config;
             this.binance = new Exchange()
-            this.pairInstance = new Pair(
-                config.symbol,
-                config.atrMultiplier,
-                config.takeProfitMult,
-                config.stopLossPrct);
+            this.pairInstance = new Pair(config);
         }
     }
 
@@ -71,8 +67,10 @@ class BacktestingingService {
     
             }
 
-            const strategy = await getStrategy(this.config.symbol)
-            let signal = await strategy.getSignal(this.pairInstance);
+            const Strategy = StrategyFactory.build(this.config.strategy)
+            const strategy = new Strategy(config);
+
+            let signal = await strategy.getSignal();
             if(signal && signal.isBuy && checkEntryLongConditions(this.orders,this.pairInstance)) {
                 this.pairInstance.orderStatus = orderStatus.BUY_LONG;    
                 this.pairInstance.positionEntry = candle.open;  
