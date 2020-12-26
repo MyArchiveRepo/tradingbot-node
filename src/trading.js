@@ -10,6 +10,8 @@ let trading = new TradingService({
     atrPeriod: process.env.ATR_PERIOD,
     atrMultiplier: process.env.ATR_MULTIPLIER,
     stopLossPrct: process.env.STOP_LOSS_PRCT,
+    positionEntry: process.env.ENTRY,
+    orderStatus: process.env.ORDER_STATUS
 })
 
 trading.start();

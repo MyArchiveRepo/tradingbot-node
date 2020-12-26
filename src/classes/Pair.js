@@ -68,12 +68,12 @@ module.exports = class Pair{
     }
     
     constructor(config) {
-        this.orderStatus = orderStatus.BUY_LONG;
+        this.orderStatus = config.orderStatus || orderStatus.INITIAL;
         this.symbol = config.symbol;
         this.stopLossPrct = config.stopLossPrct;
         this.takeProfitMult = config.takeProfit;
         this.atrMultiplier = config.atrMultiplier;
-        this.positionEntry = "616.72";
+        this.positionEntry = config.positionEntry || null;
     }
 
 

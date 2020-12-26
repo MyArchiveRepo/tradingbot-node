@@ -16,6 +16,12 @@ class Exchange {
     initPair = async (config) => {
 
         let pairInstance = new Pair(config);
+        
+        console.log("ORDER STATUS",pairInstance.orderStatus);
+        console.log("ENTRY",pairInstance.positionEntry);
+        console.log("STOP LOSS",pairInstance.stopLoss);
+        console.log("TRAILING STOP LOSS",pairInstance.atrStopLoss);
+
         const candles = await this.client.candles({symbol: config.symbol, interval: config.period});
         candles.forEach(candle => {
             pairInstance.addCandle(candle)
