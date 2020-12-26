@@ -52,12 +52,12 @@ class TradingService {
                 if(hitAtrStopLoss || hitStopLoss){
     
                     if(pairInstance.orderStatus == orderStatus.BUY_LONG){
-                        let closeBuy = await this.binance.repayAllQuoteDebts();
+                        let closeBuy = await this.binance.mgCloseBuyLong();
                         if(closeBuy) pairInstance.orderStatus = orderStatus.BUY_CLOSED;
                     }
     
                     if(pairInstance.orderStatus == orderStatus.SELL_SHORT){
-                        let closeSell = await this.binance.repayAllBaseDebts();
+                        let closeSell = await this.binance.mgCloseSellShort();
                         if(closeSell) pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                     }
                 }
@@ -73,7 +73,12 @@ class TradingService {
                 if (signal.isBuy && checkEntryLongConditions(pairInstance)) {
                     try {
 
-                        await sleep(wait_time)
+                        if(pairInstance.orderStatus == orderStatus.SELL_CLOSED){
+                            let sellReloadOrder = await this.binance.sellShort(pairInstance)
+                            if(sellReloadOrder) console.log("RELOAD ORDER",buyOrder)
+                        }
+
+                        await sleep(wait_time) 
                         let buyOrder = await this.binance.mgBuyLong(pairInstance,this.leverage);
                         if(buyOrder){
                             pairInstance.orderStatus = orderStatus.BUY_LONG;
@@ -89,6 +94,11 @@ class TradingService {
 
                 if(!signal.isBuy && checkEntryShortConditions(pairInstance)) {
                     try {
+
+                        if(pairInstance.orderStatus == orderStatus.BUY_CLOSED){
+                            let buyReloadOrder = await this.binance.buyLong(pairInstance)
+                            if(buyReloadOrder) console.log("RELOAD ORDER",buyOrder)
+                        }
                         
                         await sleep(wait_time)
                         let sellOrder = await this.binance.mgSellShort(pairInstance,this.leverage);

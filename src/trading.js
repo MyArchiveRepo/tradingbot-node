@@ -14,4 +14,5 @@ let trading = new TradingService({
     orderStatus: process.env.ORDER_STATUS
 })
 
-trading.start();
+if(/true/.test(process.env.ENABLED)) trading.start();
+else console.log("Trading is not enabled")

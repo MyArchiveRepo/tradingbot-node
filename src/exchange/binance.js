@@ -136,6 +136,42 @@ class Exchange {
         return null;
     }
 
+    async sellShort (pairInstance) {
+        let account = await this.client.marginAccountInfo(); 
+        let baseAsset = await account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
+        let quantity = pairInstance.getValidQuantity(baseAsset.free);
+        if (quantity) {
+            console.log('SELL !!!')
+            return await this.client.marginOrder({
+                symbol: pairInstance.symbol,
+                side: 'SELL',
+                type: 'MARKET',
+                quantity: quantity,
+            });
+        }
+    
+        return null;
+    }
+
+    async buyLong (pairInstance) {
+
+        let account = await this.client.marginAccountInfo();
+        let quoteAsset = await account.userAssets.find(x => x.asset == pairInstance.info.quoteAsset);
+        let quantity = pairInstance.getValidQuantity(quoteAsset.free);
+        let minNotional = pairInstance.checkMinNotional(quantity);
+        if (quantity && minNotional) {
+            console.log('BUY !!!')
+            return await this.client.marginOrder({
+                symbol: pairInstance.symbol,
+                side: 'BUY',
+                type: 'MARKET',
+                quoteOrderQty: quantity,
+            });
+        }
+    
+        return null;
+    }
+
     mgSellShort = async (pairInstance,leverage) => {
         let account = await this.client.marginAccountInfo(); 
         let baseAsset = await account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
