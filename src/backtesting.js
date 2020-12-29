@@ -16,12 +16,13 @@ const main = async () => {
         atrPeriod: process.env.ATR_PERIOD,
         atrMultiplier: process.env.ATR_MULTIPLIER,
         stopLossPrct: process.env.STOP_LOSS_PRCT,
+        strategy: process.env.STRATEGY,
         startTime,
         endTime
     });
 
     await backtesting.start();
-
+    
     let csvOrders = "";
     csvOrders = convertToCSV(backtesting.orders);
     fs.writeFileSync(`${new Date().toISOString()}${process.env.SYMBOL}.csv`,csvOrders)

@@ -67,6 +67,8 @@ module.exports = class Pair{
         }
     }
     
+    set stopLoss(value) { return value; }
+    
     constructor(config) {
         this.orderStatus = config.orderStatus || orderStatus.INITIAL;
         this.symbol = config.symbol;
@@ -79,12 +81,12 @@ module.exports = class Pair{
 
     getAtrStopLossBuy(){
         if(this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
-        return this.previousCandleLow()*1 - this.lastAtr() * this.atrMultiplier;
+        return this.previousCandleOpen()*1 - this.lastAtr() * this.atrMultiplier;
     }
 
     getAtrStopLossSell(){
         if(this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
-        return this.previousCandleHigh()*1 + this.lastAtr() * this.atrMultiplier;
+        return this.previousCandleOpen()*1 + this.lastAtr() * this.atrMultiplier;
     }
 
     getAtrTakeProfitBuy(){

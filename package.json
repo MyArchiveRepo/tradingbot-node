@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node src/trading.js",
+    "backtest": "node src/backtesting.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "publishheroku": "git push heroku-aldo master || true && git push heroku-alex master || true"
   },

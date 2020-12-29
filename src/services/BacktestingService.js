@@ -6,6 +6,7 @@ const tulind = require('tulind');
 const orderStatus = require('./orderStatus');
 const BigNumber = require('bignumber.js').default;
 BigNumber.config({ DECIMAL_PLACES: 3 })
+const PairWrapper = require('../classes/PairWrapper');
 
 class BacktestingingService {
 
@@ -16,50 +17,51 @@ class BacktestingingService {
         if(isCorrectConfig(config)){
             this.config = config;
             this.binance = new Exchange()
-            this.pairInstance = new Pair(config);
+            PairWrapper.add(new Pair(config));
         }
     }
 
     async start() {
-
+        
         let candlesHistory = await this.binance.getHistory( 
             this.config.symbol, this.config.period, this.config.startTime, this.config.endTime, null);
 
         let newQuantity = null;
         for (const candle of candlesHistory) {
 
-            this.pairInstance.addCandle(candle);
+            let pairInstance = PairWrapper.get(this.config.symbol)
 
-            await updateIndicators(this.pairInstance, this.config)
+            pairInstance.addCandle(candle);
 
-            let hitAtrStopLoss = this.pairInstance.checkHitAtrStopLossTest();
-            let hitStopLoss = this.pairInstance.checkHitStopLossTest();
+            await updateIndicators(pairInstance, this.config)
 
+            let hitAtrStopLoss = pairInstance.checkHitAtrStopLossTest();
+            let hitStopLoss = pairInstance.checkHitStopLossTest();
+            
             if(hitAtrStopLoss || hitStopLoss) {
     
-                switch (this.pairInstance.orderStatus) {
+                switch (pairInstance.orderStatus) {
                     case orderStatus.BUY_LONG:
-                        if(this.pairInstance.atrStopLoss < this.pairInstance.stopLoss && hitStopLoss)
-                            this.orders[this.orders.length - 1].close = BigNumber(this.pairInstance.stopLoss)
-                        else if(this.pairInstance.atrStopLoss > this.pairInstance.stopLoss && hitAtrStopLoss)
-                            this.orders[this.orders.length - 1].close = BigNumber(this.pairInstance.atrStopLoss)
+                        if(pairInstance.atrStopLoss < pairInstance.stopLoss && hitStopLoss)
+                            this.orders[this.orders.length - 1].close = BigNumber(pairInstance.stopLoss)
+                        else if(pairInstance.atrStopLoss > pairInstance.stopLoss && hitAtrStopLoss)
+                            this.orders[this.orders.length - 1].close = BigNumber(pairInstance.atrStopLoss)
                         break;
                     case orderStatus.SELL_SHORT:
-                        if(this.pairInstance.atrStopLoss > this.pairInstance.stopLoss && hitStopLoss)
-                            this.orders[this.orders.length - 1].close = BigNumber(this.pairInstance.stopLoss)
-                        else if(this.pairInstance.atrStopLoss < this.pairInstance.stopLoss && hitAtrStopLoss)
-                            this.orders[this.orders.length - 1].close = BigNumber(this.pairInstance.atrStopLoss)
+                        if(pairInstance.atrStopLoss > pairInstance.stopLoss && hitStopLoss)
+                            this.orders[this.orders.length - 1].close = BigNumber(pairInstance.stopLoss)
+                        else if(pairInstance.atrStopLoss < pairInstance.stopLoss && hitAtrStopLoss)
+                            this.orders[this.orders.length - 1].close = BigNumber(pairInstance.atrStopLoss)
                         break
                     default:
                         break;
                 }
     
-                if(this.pairInstance.orderStatus == orderStatus.BUY_LONG){
-                    this.pairInstance.orderStatus = orderStatus.BUY_CLOSED;
+                if(pairInstance.orderStatus == orderStatus.BUY_LONG){
+                    pairInstance.orderStatus = orderStatus.BUY_CLOSED;
                 }
-                else this.pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+                else pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                 if(this.orders.length > 0){
-                    this.orders[this.orders.length - 1].close = BigNumber(candle.open)
                     let preQty = newQuantity ? newQuantity : BigNumber(this.quantity);
                     newQuantity = printToConsole(this.orders, preQty);
                 }
@@ -68,18 +70,18 @@ class BacktestingingService {
             }
 
             const Strategy = StrategyFactory.build(this.config.strategy)
-            const strategy = new Strategy(config);
+            const strategy = new Strategy(this.config);
 
             let signal = await strategy.getSignal();
-            if(signal && signal.isBuy && checkEntryLongConditions(this.orders,this.pairInstance)) {
-                this.pairInstance.orderStatus = orderStatus.BUY_LONG;    
-                this.pairInstance.positionEntry = candle.open;  
-                this.orders.push(getNewOrder(candle,this.pairInstance.symbol,'L'))
+            if(signal && signal.isBuy && checkEntryLongConditions(this.orders,pairInstance)) {
+                pairInstance.orderStatus = orderStatus.BUY_LONG;    
+                pairInstance.positionEntry = candle.open;  
+                this.orders.push(getNewOrder(candle,pairInstance.symbol,'L'))
             }
-            if(signal && !signal.isBuy && checkEntryShortConditions(this.orders,this.pairInstance)) {
-                this.pairInstance.orderStatus = orderStatus.SELL_SHORT;
-                this.pairInstance.positionEntry = candle.open;  
-                this.orders.push(getNewOrder(candle,this.pairInstance.symbol,'S'))
+            if(signal && !signal.isBuy && checkEntryShortConditions(this.orders,pairInstance)) {
+                pairInstance.orderStatus = orderStatus.SELL_SHORT;
+                pairInstance.positionEntry = candle.open;  
+                this.orders.push(getNewOrder(candle,pairInstance.symbol,'S'))
             }
         }
     }

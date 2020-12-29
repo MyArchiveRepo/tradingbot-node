@@ -1,6 +1,14 @@
+const tulind = require('tulind');
+const PairWrapper = require('../classes/PairWrapper');
+
 class SmaSlopeStrategy {
 
-    constructor() {}
+    constructor(config) {
+        this.symbol = config.symbol;
+        this.maPeriod = config.maPeriod;
+        this.maMultiplier = config.maMultiplier;
+        this.atrPeriod = config.atrPeriod;
+    }
 
     getSignal = async () => {
         let pairInstance = PairWrapper.get(this.symbol);
@@ -48,6 +56,8 @@ class SmaSlopeStrategy {
         return pairInstance;
     
     }
+
+
 }
 
 module.exports = SmaSlopeStrategy
