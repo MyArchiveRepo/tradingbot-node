@@ -26,7 +26,6 @@ class Exchange {
         candles.forEach(candle => {
             pairInstance.addCandle(candle)
         });
-        let account = await this.client.marginAccountInfo();
         const exchangeInfo = await this.client.exchangeInfo();
         const symbolInfo = exchangeInfo.symbols.find(x => x.symbol == config.symbol);
         if (!symbolInfo) throw new Error('Invalid symbol')
@@ -36,7 +35,7 @@ class Exchange {
         return pairInstance;
     }
 
-    async mgCloseSellShort(){
+    async mgCloseSellShort(pairInstance){
         let account = await this.client.marginAccountInfo();
         let quoteAsset = account.userAssets.find(x => x.asset == pairInstance.info.quoteAsset);
         let quantity = pairInstance.getValidQuantity(quoteAsset.free);
@@ -55,7 +54,7 @@ class Exchange {
         return null;  
     }
 
-    async mgCloseBuyLong(){
+    async mgCloseBuyLong(pairInstance){
         let account = await this.client.marginAccountInfo();
         let baseAsset = account.userAssets.find(x => x.asset == pairInstance.info.baseAsset);
         let quantity = pairInstance.getValidQuantity(baseAsset.free);

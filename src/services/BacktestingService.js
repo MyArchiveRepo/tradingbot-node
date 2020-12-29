@@ -21,6 +21,12 @@ class BacktestingingService {
         }
     }
 
+    async test() {
+        let pairInstance = await this.binance.initPair(this.config);
+        let order = await this.binance.buyLong(pairInstance);
+        console.log(order)
+    }
+
     async start() {
         
         let candlesHistory = await this.binance.getHistory( 
