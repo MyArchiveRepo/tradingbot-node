@@ -163,6 +163,11 @@ module.exports = class Pair {
         this.candleHighs.push(candle.high)
         this.candleLows.push(candle.low)
 
+        this.candleOpens.shift();
+        this.candleCloses.shift();
+        this.candleHighs.shift();
+        this.candleLows.shift();
+
         if (this.orderStatus == orderStatus.BUY_LONG || this.orderStatus == orderStatus.SELL_SHORT) {
             this.positionHigh = (candle.open >= this.positionHigh) ? candle.open : this.positionHigh;
             this.positionLow = (candle.open <= this.positionLow) ? candle.open : this.positionLow;
