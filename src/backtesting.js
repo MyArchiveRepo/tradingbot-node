@@ -15,6 +15,8 @@ const main = async () => {
         maMultiplier: process.env.MA_MULTIPLIER,
         atrPeriod: process.env.ATR_PERIOD,
         atrMultiplier: process.env.ATR_MULTIPLIER,
+        isActiveTakeProfit: true,
+        takeProfitMult: process.env.TAKE_PROFIT_MULT,
         stopLossPrct: process.env.STOP_LOSS_PRCT,
         strategy: process.env.STRATEGY,
         startTime,

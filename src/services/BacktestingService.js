@@ -43,7 +43,21 @@ class BacktestingingService {
 
             let hitAtrStopLoss = pairInstance.checkHitAtrStopLossTest();
             let hitStopLoss = pairInstance.checkHitStopLossTest();
-            
+            let hitTakeProfit = pairInstance.checkHitAtrTakeProfitTest();
+
+            if(hitTakeProfit && this.config.isActiveTakeProfit){
+                this.orders[this.orders.length - 1].close = BigNumber(pairInstance.atrTakeProfit)
+                if(pairInstance.orderStatus == orderStatus.BUY_LONG){
+                    pairInstance.orderStatus = orderStatus.BUY_CLOSED;
+                }
+                else pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+                if(this.orders.length > 0){
+                    let preQty = newQuantity ? newQuantity : BigNumber(this.quantity);
+                    newQuantity = printToConsole(this.orders, preQty);
+                }
+                continue;
+            }
+
             if(hitAtrStopLoss || hitStopLoss) {
     
                 switch (pairInstance.orderStatus) {
@@ -82,11 +96,15 @@ class BacktestingingService {
             if(signal && signal.isBuy && checkEntryLongConditions(this.orders,pairInstance)) {
                 pairInstance.orderStatus = orderStatus.BUY_LONG;    
                 pairInstance.positionEntry = candle.open;  
+                pairInstance.positionHigh = candle.open;
+                pairInstance.positionLow = candle.open;
                 this.orders.push(getNewOrder(candle,pairInstance.symbol,'L'))
             }
             if(signal && !signal.isBuy && checkEntryShortConditions(this.orders,pairInstance)) {
                 pairInstance.orderStatus = orderStatus.SELL_SHORT;
-                pairInstance.positionEntry = candle.open;  
+                pairInstance.positionEntry = candle.open; 
+                pairInstance.positionHigh = candle.open;
+                pairInstance.positionLow = candle.open; 
                 this.orders.push(getNewOrder(candle,pairInstance.symbol,'S'))
             }
         }

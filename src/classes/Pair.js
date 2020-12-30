@@ -25,6 +25,8 @@ module.exports = class Pair{
     macdSignal = null;
     macdHistogram = null;
 
+    positionHigh = null;
+    positionLow = null;
     positionEntry = null;
     waitStatus = null;
 
@@ -67,13 +69,11 @@ module.exports = class Pair{
         }
     }
     
-    set stopLoss(value) { return value; }
-    
     constructor(config) {
         this.orderStatus = config.orderStatus || orderStatus.INITIAL;
         this.symbol = config.symbol;
         this.stopLossPrct = config.stopLossPrct;
-        this.takeProfitMult = config.takeProfit;
+        this.takeProfitMult = config.takeProfitMult;
         this.atrMultiplier = config.atrMultiplier;
         this.positionEntry = config.positionEntry || null;
     }
@@ -81,22 +81,22 @@ module.exports = class Pair{
 
     getAtrStopLossBuy(){
         if(this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
-        return this.previousCandleOpen()*1 - this.lastAtr() * this.atrMultiplier;
+        return this.positionHigh*1 - this.lastAtr() * this.atrMultiplier;
     }
 
     getAtrStopLossSell(){
         if(this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
-        return this.previousCandleOpen()*1 + this.lastAtr() * this.atrMultiplier;
+        return this.positionLow*1 + this.lastAtr() * this.atrMultiplier;
     }
 
     getAtrTakeProfitBuy(){
         if(this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
-        return this.previousCandleOpen()*1 + this.lastAtr() * this.takeProfitMult;
+        return this.positionEntry*1 + this.lastAtr() * this.takeProfitMult;
     }
 
     getAtrTakeProfitSell(){
         if(this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
-        return this.previousCandleOpen()*1 - this.lastAtr() * this.takeProfitMult;
+        return this.positionEntry*1 - this.lastAtr() * this.takeProfitMult;
     }
 
     getStopLossBuy(){
@@ -157,11 +157,13 @@ module.exports = class Pair{
         }
     }
     
-    addCandle(candle){
+    addCandle(candle) {
         this.candleOpens.push(candle.close)
         this.candleCloses.push(candle.close)
         this.candleHighs.push(candle.high)
         this.candleLows.push(candle.low)
+        this.positionHigh = ( candle.open >= this.positionHigh ) ? candle.open : this.positionHigh;
+        this.positionLow = ( candle.open <= this.positionLow ) ? candle.open : this.positionLow;
     }
 
     updateLastCandle(candle){
@@ -170,6 +172,8 @@ module.exports = class Pair{
         this.candleCloses[index] = Number(candle.close)
         this.candleHighs[index] = Number(candle.high)
         this.candleLows[index] = Number(candle.low)
+        this.positionHigh = ( candle.open >= this.positionHigh ) ? candle.open : this.positionHigh;
+        this.positionLow = ( candle.open <= this.positionLow ) ? candle.open : this.positionLow;
     }
 
     checkMinNotional(asset) {
