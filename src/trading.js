@@ -8,6 +8,7 @@ let trading = new TradingService({
     maPeriod: process.env.MA_PERIOD,
     maMultiplier: process.env.MA_MULTIPLIER,
     atrPeriod: process.env.ATR_PERIOD,
+    takeProfitMult: process.env.TAKE_PROFIT_MULT,
     atrMultiplier: process.env.ATR_MULTIPLIER,
     stopLossPrct: process.env.STOP_LOSS_PRCT,
     positionEntry: process.env.ENTRY,

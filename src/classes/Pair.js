@@ -1,6 +1,6 @@
 const BigNumber = require('bignumber.js').default;
 const orderStatus = require('./../services/orderStatus');
-module.exports = class Pair{
+module.exports = class Pair {
 
     //symbol
     symbol = null;
@@ -8,7 +8,7 @@ module.exports = class Pair{
     //asset
     assetBase = null;
     assetQuote = null;
-    
+
     // candle data
     candleOpens = [];
     candleCloses = [];
@@ -30,20 +30,20 @@ module.exports = class Pair{
     positionEntry = null;
     waitStatus = null;
 
-    lastSma = () => this.sma ? this.sma[this.sma.length -1] : null
-    lastSmaLong = () => this.smaLong ? this.smaLong[this.smaLong.length -1] : null
-    lastEma = () => this.ema ? this.ema[this.ema.length -1] : null
-    lastEmaLong = () => this.emaLong ? this.emaLong[this.emaLong.length -1] : null
-    lastMacd = () => this.macd ? this.macd[this.macd.length -1] : null
-    lastMacdSignal  = () => this.macdSignal ? this.macdSignal[this.macdSignal.length -1] : null
-    lastMacdHistogram  = () => this.macdHistogram ? this.macdHistogram[this.macdHistogram.length -1] : null
-    lastCandleHigh = () => this.candleHighs ? this.candleHighs[this.candleHighs.length -1] : null
-    lastCandleLow = () => this.candleLows ? this.candleLows[this.candleLows.length -1] : null
-    previousCandleHigh  = () => this.candleHighs ? this.candleHighs[this.candleHighs.length - 2] : null
-    previousCandleLow  = () => this.candleLows ? this.candleLows[this.candleLows.length - 2] : null
-    previousCandleOpen  = () => this.candleOpens ? this.candleOpens[this.candleOpens.length - 2] : null
-    lastCandleClose = () => this.candleCloses ? this.candleCloses[this.candleCloses.length -1] : null
-    lastAtr = () => this.atr ? this.atr[this.atr.length -1] : null
+    lastSma = () => this.sma ? this.sma[this.sma.length - 1] : null
+    lastSmaLong = () => this.smaLong ? this.smaLong[this.smaLong.length - 1] : null
+    lastEma = () => this.ema ? this.ema[this.ema.length - 1] : null
+    lastEmaLong = () => this.emaLong ? this.emaLong[this.emaLong.length - 1] : null
+    lastMacd = () => this.macd ? this.macd[this.macd.length - 1] : null
+    lastMacdSignal = () => this.macdSignal ? this.macdSignal[this.macdSignal.length - 1] : null
+    lastMacdHistogram = () => this.macdHistogram ? this.macdHistogram[this.macdHistogram.length - 1] : null
+    lastCandleHigh = () => this.candleHighs ? this.candleHighs[this.candleHighs.length - 1] : null
+    lastCandleLow = () => this.candleLows ? this.candleLows[this.candleLows.length - 1] : null
+    previousCandleHigh = () => this.candleHighs ? this.candleHighs[this.candleHighs.length - 2] : null
+    previousCandleLow = () => this.candleLows ? this.candleLows[this.candleLows.length - 2] : null
+    previousCandleOpen = () => this.candleOpens ? this.candleOpens[this.candleOpens.length - 2] : null
+    lastCandleClose = () => this.candleCloses ? this.candleCloses[this.candleCloses.length - 1] : null
+    lastAtr = () => this.atr ? this.atr[this.atr.length - 1] : null
 
     get atrStopLoss() {
         switch (this.orderStatus) {
@@ -68,7 +68,7 @@ module.exports = class Pair{
             default: return null;
         }
     }
-    
+
     constructor(config) {
         this.orderStatus = config.orderStatus || orderStatus.INITIAL;
         this.symbol = config.symbol;
@@ -79,34 +79,34 @@ module.exports = class Pair{
     }
 
 
-    getAtrStopLossBuy(){
-        if(this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
-        return this.positionHigh*1 - this.lastAtr() * this.atrMultiplier;
+    getAtrStopLossBuy() {
+        if (this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
+        return this.positionHigh * 1 - this.lastAtr() * this.atrMultiplier;
     }
 
-    getAtrStopLossSell(){
-        if(this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
-        return this.positionLow*1 + this.lastAtr() * this.atrMultiplier;
+    getAtrStopLossSell() {
+        if (this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
+        return this.positionLow * 1 + this.lastAtr() * this.atrMultiplier;
     }
 
-    getAtrTakeProfitBuy(){
-        if(this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
-        return this.positionEntry*1 + this.lastAtr() * this.takeProfitMult;
+    getAtrTakeProfitBuy() {
+        if (this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
+        return this.positionEntry * 1 + this.lastAtr() * this.takeProfitMult;
     }
 
-    getAtrTakeProfitSell(){
-        if(this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
-        return this.positionEntry*1 - this.lastAtr() * this.takeProfitMult;
+    getAtrTakeProfitSell() {
+        if (this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
+        return this.positionEntry * 1 - this.lastAtr() * this.takeProfitMult;
     }
 
-    getStopLossBuy(){
-        if(this.orderStatus != orderStatus.BUY_LONG || !this.positionEntry ) return null;
-        return this.positionEntry*1 - (this.positionEntry / 100 ) * this.stopLossPrct;
+    getStopLossBuy() {
+        if (this.orderStatus != orderStatus.BUY_LONG || !this.positionEntry) return null;
+        return this.positionEntry * 1 - (this.positionEntry / 100) * this.stopLossPrct;
     }
 
-    getStopLossSell(){
-        if(this.orderStatus != orderStatus.SELL_SHORT || !this.positionEntry) return null;
-        return this.positionEntry*1 + (this.positionEntry / 100 ) * this.stopLossPrct;
+    getStopLossSell() {
+        if (this.orderStatus != orderStatus.SELL_SHORT || !this.positionEntry) return null;
+        return this.positionEntry * 1 + (this.positionEntry / 100) * this.stopLossPrct;
     }
 
     checkHitAtrStopLoss() {
@@ -156,43 +156,47 @@ module.exports = class Pair{
             default: return false;
         }
     }
-    
+
     addCandle(candle) {
         this.candleOpens.push(candle.close)
         this.candleCloses.push(candle.close)
         this.candleHighs.push(candle.high)
         this.candleLows.push(candle.low)
-        this.positionHigh = ( candle.open >= this.positionHigh ) ? candle.open : this.positionHigh;
-        this.positionLow = ( candle.open <= this.positionLow ) ? candle.open : this.positionLow;
+
+        if (this.orderStatus == orderStatus.BUY_LONG || this.orderStatus == orderStatus.SELL_SHORT) {
+            this.positionHigh = (candle.open >= this.positionHigh) ? candle.open : this.positionHigh;
+            this.positionLow = (candle.open <= this.positionLow) ? candle.open : this.positionLow;
+            console.log("LOW - OPEN:", this.positionLow)
+            console.log("HIGH - OPEN:", this.positionHigh)
+        }
+
     }
 
-    updateLastCandle(candle){
-        const index = this.candleOpens.length -1
+    updateLastCandle(candle) {
+        const index = this.candleOpens.length - 1
         this.candleOpens[index] = Number(candle.open)
         this.candleCloses[index] = Number(candle.close)
         this.candleHighs[index] = Number(candle.high)
         this.candleLows[index] = Number(candle.low)
-        this.positionHigh = ( candle.open >= this.positionHigh ) ? candle.open : this.positionHigh;
-        this.positionLow = ( candle.open <= this.positionLow ) ? candle.open : this.positionLow;
     }
 
     checkMinNotional(asset) {
-        const filter = this.info.filters.find(x=>x.filterType == 'MIN_NOTIONAL');
+        const filter = this.info.filters.find(x => x.filterType == 'MIN_NOTIONAL');
         let minNotional = new BigNumber(filter.minNotional);
         return BigNumber(asset).isGreaterThan(minNotional);
     }
 
-    getValidQuantity(qty){
-        const filter = this.info.filters.find(x=>x.filterType == 'LOT_SIZE');
+    getValidQuantity(qty) {
+        const filter = this.info.filters.find(x => x.filterType == 'LOT_SIZE');
         let roundedQty = this.roundStep(qty, filter.stepSize);
-        if( BigNumber(roundedQty).gte(filter.minQty) && BigNumber(roundedQty).lte(filter.maxQty) ) {
+        if (BigNumber(roundedQty).gte(filter.minQty) && BigNumber(roundedQty).lte(filter.maxQty)) {
             return roundedQty;
         }
         return null;
     }
 
 
-    getValidLeverageQuantity(qty, leverage){   
+    getValidLeverageQuantity(qty, leverage) {
         let totLeverage = BigNumber(qty).multipliedBy(leverage).multipliedBy(0.95);
         return this.getValidQuantity(totLeverage.toString());
     }
@@ -201,18 +205,18 @@ module.exports = class Pair{
         let borrowed = asset.borrowed;
         let interest = asset.interest;
         let secureMargin = BigNumber(borrowed).multipliedBy(0.05);
-        return BigNumber.sum(borrowed,interest,secureMargin).toString();
+        return BigNumber.sum(borrowed, interest, secureMargin).toString();
     }
 
-    roundStep(qty, stepSize){
-        if(BigNumber(qty).isInteger()) return qty;
+    roundStep(qty, stepSize) {
+        if (BigNumber(qty).isInteger()) return qty;
         const desiredDecimals = BigNumber.max(stepSize.indexOf('1') - 1, 0);
         const decimalIndex = qty.indexOf('.');
-        return qty.slice(0, BigNumber.sum(decimalIndex,desiredDecimals,1));
+        return qty.slice(0, BigNumber.sum(decimalIndex, desiredDecimals, 1));
     }
 
     getWaitStatus() {
-        if(this.lastCandleClose() > this.lastSma()) return orderStatus.WAIT_FOR_SHORT;
+        if (this.lastCandleClose() > this.lastSma()) return orderStatus.WAIT_FOR_SHORT;
         else return orderStatus.WAIT_FOR_LONG;
     }
 }

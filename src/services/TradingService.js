@@ -48,8 +48,9 @@ class TradingService {
             try{
                 let hitAtrStopLoss = pairInstance.checkHitAtrStopLoss();
                 let hitStopLoss = pairInstance.checkHitStopLoss();
+                let hitAtrStopLoss = pairInstance.checkHitAtrTakeProfit();
     
-                if(hitAtrStopLoss || hitStopLoss){
+                if(hitAtrStopLoss || hitStopLoss || hitAtrStopLoss){
     
                     if(pairInstance.orderStatus == orderStatus.BUY_LONG){
                         let closeBuy = await this.binance.mgCloseBuyLong(pairInstance);
@@ -83,6 +84,8 @@ class TradingService {
                         if(buyOrder){
                             pairInstance.orderStatus = orderStatus.BUY_LONG;
                             pairInstance.positionEntry = buyOrder.fills[0].price;
+                            pairInstance.positionHigh = buyOrder.fills[0].price;
+                            pairInstance.positionLow = buyOrder.fills[0].price;
                             console.log("ORDER",buyOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
@@ -104,7 +107,9 @@ class TradingService {
                         let sellOrder = await this.binance.mgSellShort(pairInstance,this.leverage);
                         if(sellOrder) {
                             pairInstance.orderStatus = orderStatus.SELL_SHORT;
-                            pairInstance.positionEntry = sellOrder.fills[0].price;
+                            pairInstance.positionEntry = buyOrder.fills[0].price;
+                            pairInstance.positionHigh = buyOrder.fills[0].price;
+                            pairInstance.positionLow = buyOrder.fills[0].price;
                             console.log("ORDER",sellOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
