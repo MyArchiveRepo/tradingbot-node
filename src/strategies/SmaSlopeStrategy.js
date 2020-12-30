@@ -15,7 +15,8 @@ class SmaSlopeStrategy {
 
         if(!pairInstance.sma  || pairInstance.sma.length < 2) return null;
         if(!pairInstance.smaLong || pairInstance.smaLong.length < 2) return null;
-
+        console.log("RISING",this.isRising(pairInstance))
+        console.log("FALLING",this.isFalling(pairInstance))
         if(this.isRising(pairInstance)) return { isBuy: true }
         if(this.isFalling(pairInstance)) return { isBuy: false }
 
