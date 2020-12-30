@@ -48,9 +48,9 @@ class TradingService {
             try{
                 let hitAtrStopLoss = pairInstance.checkHitAtrStopLoss();
                 let hitStopLoss = pairInstance.checkHitStopLoss();
-                let hitAtrStopLoss = pairInstance.checkHitAtrTakeProfit();
+                let hitTakeProfit = pairInstance.checkHitAtrTakeProfit();
     
-                if(hitAtrStopLoss || hitStopLoss || hitAtrStopLoss){
+                if(hitAtrStopLoss || hitStopLoss || hitTakeProfit){
     
                     if(pairInstance.orderStatus == orderStatus.BUY_LONG){
                         let closeBuy = await this.binance.mgCloseBuyLong(pairInstance);
