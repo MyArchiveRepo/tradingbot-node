@@ -27,6 +27,7 @@ class TradingService {
         console.log("service sarted with: " + this.symbol)
         this.wsCandles = this.binance.client.ws.candles(this.symbol, this.period, async candle => this.strategy.candleTracking(candle))
         this.checkSignalLoop(true)
+        this.logLoop()
     }
 
     stop = async () => {
@@ -43,7 +44,6 @@ class TradingService {
                 return;
             }
             let pairInstance = PairWrapper.get(this.symbol)
-
 
             try{
                 let hitAtrStopLoss = pairInstance.checkHitAtrStopLoss();
@@ -65,7 +65,7 @@ class TradingService {
                         default:
                             break;
                     }
-                    
+
                     if(pairInstance.orderStatus == orderStatus.BUY_LONG){
                         let closeBuy = await this.binance.mgCloseBuyLong(pairInstance);
                         if(closeBuy) pairInstance.orderStatus = orderStatus.BUY_CLOSED;
@@ -97,9 +97,9 @@ class TradingService {
                         let buyOrder = await this.binance.mgBuyLong(pairInstance,this.leverage);
                         if(buyOrder){
                             pairInstance.orderStatus = orderStatus.BUY_LONG;
-                            pairInstance.positionEntry = buyOrder.fills[0].price;
-                            pairInstance.positionHigh = buyOrder.fills[0].price;
-                            pairInstance.positionLow = buyOrder.fills[0].price;
+                            pairInstance.positionEntry = buyOrder.fills[0].price || buyOrder.price;
+                            pairInstance.positionHigh = buyOrder.fills[0].price || buyOrder.price;
+                            pairInstance.positionLow = buyOrder.fills[0].price || buyOrder.price;
                             console.log("ORDER",buyOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
@@ -114,16 +114,16 @@ class TradingService {
 
                         if(pairInstance.orderStatus == orderStatus.BUY_CLOSED){
                             let buyReloadOrder = await this.binance.buyLong(pairInstance)
-                            if(buyReloadOrder) console.log("RELOAD ORDER",buyOrder)
+                            if(buyReloadOrder) console.log("RELOAD ORDER",buyReloadOrder)
                         }
                         
                         await sleep(wait_time)
                         let sellOrder = await this.binance.mgSellShort(pairInstance,this.leverage);
                         if(sellOrder) {
                             pairInstance.orderStatus = orderStatus.SELL_SHORT;
-                            pairInstance.positionEntry = buyOrder.fills[0].price;
-                            pairInstance.positionHigh = buyOrder.fills[0].price;
-                            pairInstance.positionLow = buyOrder.fills[0].price;
+                            pairInstance.positionEntry = buyOrder.fills[0].price || buyOrder.price;
+                            pairInstance.positionHigh = buyOrder.fills[0].price || buyOrder.price;
+                            pairInstance.positionLow = buyOrder.fills[0].price || buyOrder.price;
                             console.log("ORDER",sellOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
@@ -139,6 +139,13 @@ class TradingService {
         }
 
         await this.checkSignalLoop(true)
+    }
+
+    async logLoop(){
+        let pairInstance = PairWrapper.get(this.symbol)
+        pairInstance.log();
+        await sleep(10000)
+        await this.logLoop()
     }
 
 

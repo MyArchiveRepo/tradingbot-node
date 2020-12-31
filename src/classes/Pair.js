@@ -30,6 +30,13 @@ module.exports = class Pair {
     positionEntry = null;
     waitStatus = null;
 
+    log(){
+        console.log("STATUS", this.orderStatus);
+        console.log("STOPLOSS", this.stopLoss);
+        console.log("TRAILING STOPLOSS", this.atrStopLoss);
+        console.log("TAKE PROFIT", this.atrTakeProfit);
+    }
+
     lastSma = () => this.sma ? this.sma[this.sma.length - 1] : null
     lastSmaLong = () => this.smaLong ? this.smaLong[this.smaLong.length - 1] : null
     lastEma = () => this.ema ? this.ema[this.ema.length - 1] : null
@@ -110,8 +117,6 @@ module.exports = class Pair {
     }
 
     checkHitAtrStopLoss() {
-        console.log(this.orderStatus)
-        console.log(this.atrStopLoss);
         switch (this.orderStatus) {
             case orderStatus.BUY_LONG: return this.atrStopLoss > this.lastCandleClose();
             case orderStatus.SELL_SHORT: return this.atrStopLoss < this.lastCandleClose();
