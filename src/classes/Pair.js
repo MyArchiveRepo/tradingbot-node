@@ -123,6 +123,7 @@ module.exports = class Pair {
     }
 
     checkHitAtrStopLoss() {
+        if(!this.atrStopLoss) return false;
         switch (this.orderStatus) {
             case orderStatus.BUY_LONG: return this.atrStopLoss > this.lastCandleClose();
             case orderStatus.SELL_SHORT: return this.atrStopLoss < this.lastCandleClose();
@@ -139,6 +140,7 @@ module.exports = class Pair {
     }
 
     checkHitAtrTakeProfit() {
+        if(!this.atrTakeProfit) return false;
         switch (this.orderStatus) {
             case orderStatus.BUY_LONG: return this.atrTakeProfit < this.lastCandleClose();
             case orderStatus.SELL_SHORT: return this.atrTakeProfit > this.lastCandleClose();
@@ -155,6 +157,7 @@ module.exports = class Pair {
     }
 
     checkHitStopLoss() {
+        if(!this.stopLoss) return false;
         switch (this.orderStatus) {
             case orderStatus.BUY_LONG: return this.stopLoss > this.lastCandleClose();
             case orderStatus.SELL_SHORT: return this.stopLoss < this.lastCandleClose();
