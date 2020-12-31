@@ -26,6 +26,9 @@ class Exchange {
         candles.forEach(candle => {
             pairInstance.addCandle(candle)
         });
+        
+        await pairInstance.updateIndicators();
+
         const exchangeInfo = await this.client.exchangeInfo();
         const symbolInfo = exchangeInfo.symbols.find(x => x.symbol == config.symbol);
         if (!symbolInfo) throw new Error('Invalid symbol')

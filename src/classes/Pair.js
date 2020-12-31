@@ -1,5 +1,7 @@
 const BigNumber = require('bignumber.js').default;
 const orderStatus = require('./../services/orderStatus');
+const tulind = require('tulind');
+
 module.exports = class Pair {
 
     //symbol
@@ -85,6 +87,9 @@ module.exports = class Pair {
         this.positionEntry = config.positionEntry || null;
         this.positionHigh = config.positionEntry || null;
         this.positionLow = config.positionEntry || null;
+        this.maPeriod = config.maPeriod;
+        this.maMultiplier = config.maMultiplier;
+        this.atrPeriod = config.atrPeriod;
     }
 
 
@@ -195,6 +200,22 @@ module.exports = class Pair {
             //console.log("HIGH - OPEN:", this.positionHigh)
         }
 
+    }
+
+    async updateIndicators(){
+        let smaPromise = tulind.indicators.sma.indicator([this.candleCloses],[this.maPeriod])
+        let smaSlowPromise= tulind.indicators.sma.indicator([this.candleCloses],[this.maPeriod*this.maMultiplier])
+        let atrPromise = tulind.indicators.atr.indicator(
+            [this.candleHighs,this.candleLows,this.candleCloses],
+            [this.atrPeriod]
+        );
+        let results = await Promise.all([ smaPromise, smaSlowPromise, atrPromise]);
+    
+        this.sma = results[0][0];
+        this.smaLong = results[1][0];
+        this.atr = results[2][0];
+
+        return this;
     }
 
     updateLastCandle(candle) {
