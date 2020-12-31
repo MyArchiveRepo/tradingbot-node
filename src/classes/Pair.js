@@ -88,31 +88,37 @@ module.exports = class Pair {
 
     getAtrStopLossBuy() {
         if (this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
+        if (!this.positionHigh) return null;
         return this.positionHigh * 1 - this.lastAtr() * this.atrMultiplier;
     }
 
     getAtrStopLossSell() {
         if (this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
+        if (!this.positionLow) return null;
         return this.positionLow * 1 + this.lastAtr() * this.atrMultiplier;
     }
 
     getAtrTakeProfitBuy() {
         if (this.orderStatus != orderStatus.BUY_LONG || !this.atr || this.atr.length == 0) return null;
+        if (!this.positionEntry) return null;
         return this.positionEntry * 1 + this.lastAtr() * this.takeProfitMult;
     }
 
     getAtrTakeProfitSell() {
         if (this.orderStatus != orderStatus.SELL_SHORT || !this.atr || this.atr.length == 0) return null;
+        if (!this.positionEntry) return null;
         return this.positionEntry * 1 - this.lastAtr() * this.takeProfitMult;
     }
 
     getStopLossBuy() {
         if (this.orderStatus != orderStatus.BUY_LONG || !this.positionEntry) return null;
+        if (!this.positionEntry) return null;
         return this.positionEntry * 1 - (this.positionEntry / 100) * this.stopLossPrct;
     }
 
     getStopLossSell() {
         if (this.orderStatus != orderStatus.SELL_SHORT || !this.positionEntry) return null;
+        if (!this.positionEntry) return null;
         return this.positionEntry * 1 + (this.positionEntry / 100) * this.stopLossPrct;
     }
 
