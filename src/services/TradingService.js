@@ -121,9 +121,9 @@ class TradingService {
                         let sellOrder = await this.binance.mgSellShort(pairInstance,this.leverage);
                         if(sellOrder) {
                             pairInstance.orderStatus = orderStatus.SELL_SHORT;
-                            pairInstance.positionEntry = buyOrder.fills[0].price || buyOrder.price;
-                            pairInstance.positionHigh = buyOrder.fills[0].price || buyOrder.price;
-                            pairInstance.positionLow = buyOrder.fills[0].price || buyOrder.price;
+                            pairInstance.positionEntry = sellOrder.fills[0].price || sellOrder.price;
+                            pairInstance.positionHigh = sellOrder.fills[0].price || sellOrder.price;
+                            pairInstance.positionLow = sellOrder.fills[0].price || sellOrder.price;
                             console.log("ORDER",sellOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                         }
