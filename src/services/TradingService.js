@@ -156,7 +156,7 @@ const checkEntryLongConditions = (pairInstance) => {
     (pairInstance.orderStatus == orderStatus.INITIAL || pairInstance.orderStatus == orderStatus.SELL_CLOSED);
 }
 
-const checkEntryShortConditions = (orders, pairInstance) => {
+const checkEntryShortConditions = (pairInstance) => {
     return pairInstance.orderStatus !== orderStatus.SELL_SHORT &&
     (pairInstance.orderStatus == orderStatus.INITIAL || pairInstance.orderStatus == orderStatus.BUY_CLOSED);
 }
