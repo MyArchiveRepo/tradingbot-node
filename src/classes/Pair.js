@@ -110,6 +110,8 @@ module.exports = class Pair {
     }
 
     checkHitAtrStopLoss() {
+        console.log(this.orderStatus)
+        console.log(this.atrStopLoss);
         switch (this.orderStatus) {
             case orderStatus.BUY_LONG: return this.atrStopLoss > this.lastCandleClose();
             case orderStatus.SELL_SHORT: return this.atrStopLoss < this.lastCandleClose();
