@@ -76,7 +76,7 @@ class TradingService {
 
                         if(pairInstance.orderStatus == orderStatus.SELL_CLOSED){
                             let sellReloadOrder = await this.binance.sellShort(pairInstance)
-                            if(sellReloadOrder) console.log("RELOAD ORDER",buyOrder)
+                            if(sellReloadOrder) console.log("RELOAD ORDER",sellReloadOrder)
                         }
 
                         await sleep(wait_time) 
