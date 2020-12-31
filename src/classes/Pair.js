@@ -83,6 +83,8 @@ module.exports = class Pair {
         this.takeProfitMult = config.takeProfitMult;
         this.atrMultiplier = config.atrMultiplier;
         this.positionEntry = config.positionEntry || null;
+        this.positionHigh = config.positionEntry || null;
+        this.positionLow = config.positionEntry || null;
     }
 
 
