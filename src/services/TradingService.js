@@ -61,6 +61,20 @@ class TradingService {
                         let closeSell = await this.binance.mgCloseSellShort(pairInstance);
                         if(closeSell) pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                     }
+
+                    switch (true) {
+                        case hitAtrStopLoss:
+                            console.log("HIT TRAILING STOP LOSS")
+                            break;
+                        case hitStopLoss:
+                            console.log("HIT STOP LOSS")
+                            break;
+                        case hitTakeProfit:
+                            console.log("HIT TAKE PROFIT")
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             catch(err) {
