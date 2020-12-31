@@ -16,17 +16,12 @@ class Exchange {
     initPair = async (config) => {
 
         let pairInstance = new Pair(config);
-        
-        console.log("ORDER STATUS",pairInstance.orderStatus);
-        console.log("ENTRY",pairInstance.positionEntry);
-        console.log("STOP LOSS",pairInstance.stopLoss);
-        console.log("TRAILING STOP LOSS",pairInstance.atrStopLoss);
 
         const candles = await this.client.candles({symbol: config.symbol, interval: config.period});
         candles.forEach(candle => {
             pairInstance.addCandle(candle)
         });
-        
+
         await pairInstance.updateIndicators();
 
         const exchangeInfo = await this.client.exchangeInfo();
@@ -34,7 +29,12 @@ class Exchange {
         if (!symbolInfo) throw new Error('Invalid symbol')
     
         pairInstance.info = symbolInfo;
-    
+
+        console.log("ORDER STATUS",pairInstance.orderStatus);
+        console.log("ENTRY",pairInstance.positionEntry);
+        console.log("STOP LOSS",pairInstance.stopLoss);
+        console.log("TRAILING STOP LOSS",pairInstance.atrStopLoss);
+        
         return pairInstance;
     }
 

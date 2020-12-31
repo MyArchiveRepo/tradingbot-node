@@ -30,6 +30,8 @@ class SmaCrossoverStrategy {
         if(candle.isFinal) {
             pairInstance.addCandle(candle)
         }
+
+        pairInstance.updateHighAndLow(candle);
     
         let smaPromise = tulind.indicators.sma.indicator([pairInstance.candleCloses],[this.maPeriod])
         let smaSlowPromise= tulind.indicators.sma.indicator([pairInstance.candleCloses],[this.maPeriod*this.maMultiplier])
