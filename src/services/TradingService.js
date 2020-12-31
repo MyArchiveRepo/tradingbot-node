@@ -51,16 +51,6 @@ class TradingService {
                 let hitTakeProfit = pairInstance.checkHitAtrTakeProfit();
     
                 if(hitAtrStopLoss || hitStopLoss || hitTakeProfit){
-    
-                    if(pairInstance.orderStatus == orderStatus.BUY_LONG){
-                        let closeBuy = await this.binance.mgCloseBuyLong(pairInstance);
-                        if(closeBuy) pairInstance.orderStatus = orderStatus.BUY_CLOSED;
-                    }
-    
-                    if(pairInstance.orderStatus == orderStatus.SELL_SHORT){
-                        let closeSell = await this.binance.mgCloseSellShort(pairInstance);
-                        if(closeSell) pairInstance.orderStatus = orderStatus.SELL_CLOSED;
-                    }
 
                     switch (true) {
                         case hitAtrStopLoss:
@@ -74,6 +64,16 @@ class TradingService {
                             break;
                         default:
                             break;
+                    }
+                    
+                    if(pairInstance.orderStatus == orderStatus.BUY_LONG){
+                        let closeBuy = await this.binance.mgCloseBuyLong(pairInstance);
+                        if(closeBuy) pairInstance.orderStatus = orderStatus.BUY_CLOSED;
+                    }
+    
+                    if(pairInstance.orderStatus == orderStatus.SELL_SHORT){
+                        let closeSell = await this.binance.mgCloseSellShort(pairInstance);
+                        if(closeSell) pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                     }
                 }
             }
