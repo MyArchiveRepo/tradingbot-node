@@ -37,6 +37,8 @@ module.exports = class Pair {
         console.log("STOPLOSS", this.stopLoss);
         console.log("TRAILING STOPLOSS", this.atrStopLoss);
         console.log("TAKE PROFIT", this.atrTakeProfit);
+        console.log("POSITION HIGH", this.positionHigh);
+        console.log("POSITION LOW", this.positionLow);
     }
 
     lastSma = () => this.sma ? this.sma[this.sma.length - 1] : null

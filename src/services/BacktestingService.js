@@ -22,9 +22,7 @@ class BacktestingingService {
     }
 
     async test() {
-        let pairInstance = await this.binance.initPair(this.config);
-        let order = await this.binance.buyLong(pairInstance);
-        console.log(order)
+
     }
 
     async start() {
@@ -38,9 +36,10 @@ class BacktestingingService {
             let pairInstance = PairWrapper.get(this.config.symbol)
 
             pairInstance.addCandle(candle);
+            pairInstance.updateHighAndLow(candle);
 
             await updateIndicators(pairInstance, this.config)
-
+            
             let hitAtrStopLoss = pairInstance.checkHitAtrStopLossTest();
             let hitStopLoss = pairInstance.checkHitStopLossTest();
             let hitTakeProfit = pairInstance.checkHitAtrTakeProfitTest();
@@ -53,7 +52,7 @@ class BacktestingingService {
                 else pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                 if(this.orders.length > 0){
                     let preQty = newQuantity ? newQuantity : BigNumber(this.quantity);
-                    newQuantity = printToConsole(this.orders, preQty);
+                    newQuantity = printToConsole(this.orders, preQty, pairInstance);
                 }
                 continue;
             }
@@ -83,7 +82,7 @@ class BacktestingingService {
                 else pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                 if(this.orders.length > 0){
                     let preQty = newQuantity ? newQuantity : BigNumber(this.quantity);
-                    newQuantity = printToConsole(this.orders, preQty);
+                    newQuantity = printToConsole(this.orders, preQty, pairInstance);
                 }
                 continue;
     
@@ -134,14 +133,14 @@ const checkEntryShortConditions = (orders, pairInstance) => {
     (orders.length == 0 || pairInstance.orderStatus == orderStatus.BUY_CLOSED);
 }
 
-const printToConsole = (orders, quantity) => {
+const printToConsole = (orders, quantity, pairInstance) => {
     let close = orders[orders.length - 1].close;
     let open = orders[orders.length - 1].avgPrice;
     let pl = close.minus(open).dividedBy(open).multipliedBy(100);
     if(orders[orders.length - 1].bias == 'S') pl = pl.multipliedBy(-1);
     quantity = quantity.plus(quantity.dividedBy(100).multipliedBy(pl));
 
-    console.log(`${orders[orders.length - 1].date} : ${quantity}$ ${pl}%`)
+    console.log(`${orders[orders.length - 1].date} : ${quantity}$ ${pl}% LAST-ATR: ${pairInstance.lastAtr()}`)
     console.log(`---`)
 
     return quantity;
