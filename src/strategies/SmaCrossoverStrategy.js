@@ -27,9 +27,9 @@ class SmaCrossoverStrategy {
         let pairInstance = PairWrapper.get(this.symbol);
     
         pairInstance.updateLastCandle(candle)
+        pairInstance.updateHighAndLow(candle)
         if(candle.isFinal) {
             pairInstance.addCandle(candle)
-            pairInstance.updateHighAndLow(candle)
         }
     
         let smaPromise = tulind.indicators.sma.indicator([pairInstance.candleCloses],[this.maPeriod])
