@@ -7,7 +7,7 @@ const orderStatus = require('./orderStatus');
 const BigNumber = require('bignumber.js').default;
 BigNumber.config({ DECIMAL_PLACES: 3 })
 const PairWrapper = require('../classes/PairWrapper');
-
+const HerokuWrapper = require('../utils/heroku');
 class BacktestingingService {
 
     orders = [];
@@ -22,7 +22,22 @@ class BacktestingingService {
     }
 
     async test() {
+        const heroku = new HerokuWrapper({
+            herokuApiToken: process.env.HEROKU_API_KEY,
+            appName: process.env.APP_NAME
+        });
+        let configs = {}
+        try{
+            configs = await heroku.updateOrderStatus({
+                orderStatus: orderStatus.WAIT_FOR_SHORT,
+                positionEntry: 44.12
+            });
+        }
+        catch(err){
+            console.log(err)
+        }
 
+        console.log(configs);
     }
 
     async start() {

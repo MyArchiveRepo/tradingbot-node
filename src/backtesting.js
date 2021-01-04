@@ -23,11 +23,12 @@ const main = async () => {
         endTime
     });
 
-    await backtesting.start();
+    //await backtesting.start();
+    await backtesting.test();
 
-    let csvOrders = "";
-    csvOrders = convertToCSV(backtesting.orders);
-    fs.writeFileSync(`risultato_backtesting.csv`,csvOrders)
+    //let csvOrders = "";
+    //csvOrders = convertToCSV(backtesting.orders);
+    //fs.writeFileSync(`risultato_backtesting.csv`,csvOrders)
 }
 
  const convertToCSV = (arr) => {

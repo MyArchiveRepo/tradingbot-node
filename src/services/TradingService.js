@@ -6,6 +6,12 @@ const PairWrapper = require('../classes/PairWrapper');
 const orderStatus = require('./orderStatus');
 const sleep = require('util').promisify(setTimeout)
 const wait_time = 800;
+const HerokuWrapper = require('../utils/heroku');
+
+const heroku = new HerokuWrapper({
+    herokuApiToken: process.env.HEROKU_API_KEY,
+    appName: process.env.APP_NAME
+});
 
 class TradingService {
 
@@ -68,12 +74,24 @@ class TradingService {
 
                     if(pairInstance.orderStatus == orderStatus.BUY_LONG){
                         let closeBuy = await this.binance.mgCloseBuyLong(pairInstance);
-                        if(closeBuy) pairInstance.orderStatus = orderStatus.BUY_CLOSED;
+                        if(closeBuy) {
+                            pairInstance.orderStatus = orderStatus.BUY_CLOSED;
+                            pairInstance.positionEntry = null;
+                            pairInstance.positionHigh = null;
+                            pairInstance.positionLow = null;
+                            await heroku.updateOrderStatus(pairInstance);
+                        }
                     }
     
                     if(pairInstance.orderStatus == orderStatus.SELL_SHORT){
                         let closeSell = await this.binance.mgCloseSellShort(pairInstance);
-                        if(closeSell) pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+                        if(closeSell) {
+                            pairInstance.orderStatus = orderStatus.SELL_CLOSED;
+                            pairInstance.positionEntry = null;
+                            pairInstance.positionHigh = null;
+                            pairInstance.positionLow = null;
+                            await heroku.updateOrderStatus(pairInstance);
+                        }
                     }
                 }
             }
@@ -102,6 +120,7 @@ class TradingService {
                             pairInstance.positionLow = buyOrder.fills[0].price || buyOrder.price;
                             console.log("ORDER",buyOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
+                            await heroku.updateOrderStatus(pairInstance);
                         }
 
                     } catch (err) {
@@ -126,6 +145,7 @@ class TradingService {
                             pairInstance.positionLow = sellOrder.fills[0].price || sellOrder.price;
                             console.log("ORDER",sellOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
+                            await heroku.updateOrderStatus(pairInstance);
                         }
 
                    } catch (err) {
