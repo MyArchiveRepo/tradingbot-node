@@ -12,6 +12,8 @@ let trading = new TradingService({
     atrMultiplier: process.env.ATR_MULTIPLIER,
     stopLossPrct: process.env.STOP_LOSS_PRCT,
     positionEntry: process.env.ENTRY,
+    positionHigh: process.env.POSITION_HIGH,
+    positionLow: process.env.POSITION_LOW,
     orderStatus: process.env.ORDER_STATUS
 })
 

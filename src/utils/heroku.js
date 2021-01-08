@@ -20,6 +20,19 @@ class HerokuWrapper {
             }
         );
     }
+
+    async updateHighAndLow(pairInstance){
+        let vars = {};
+        vars['POSITION_HIGH'] = pairInstance.positionHigh;
+        vars['POSITION_LOW'] = pairInstance.positionLow;
+
+        return await this.heroku.patch(
+            `/apps/${this.appName}/config-vars`,
+            {
+                body: vars
+            }
+        );       
+    }
 }
 
 module.exports = HerokuWrapper;

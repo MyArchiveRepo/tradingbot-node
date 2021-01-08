@@ -1,5 +1,12 @@
+const Heroku = require('heroku-client');
 const tulind = require('tulind');
 const PairWrapper = require('../classes/PairWrapper');
+const HerokuWrapper = require('../utils/heroku');
+
+const heroku = new HerokuWrapper({
+    herokuApiToken: process.env.HEROKU_API_KEY,
+    appName: process.env.APP_NAME
+});
 
 class SmaSlopeStrategy {
 
@@ -40,6 +47,13 @@ class SmaSlopeStrategy {
         pairInstance.updateHighAndLow(candle)
         if(candle.isFinal) {
             pairInstance.addCandle(candle)
+
+            try{
+                await heroku.updateHighAndLow(pairInstance)
+            } catch(err){
+                console.error("HEROKU",err);
+            }
+            
         }
     
         let smaPromise = tulind.indicators.sma.indicator([pairInstance.candleCloses],[this.maPeriod])
