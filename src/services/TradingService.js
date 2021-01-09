@@ -164,7 +164,7 @@ class TradingService {
     async logLoop(){
         let pairInstance = PairWrapper.get(this.symbol)
         pairInstance.log();
-        await sleep(60000)
+        await sleep(600000)
         await this.logLoop()
     }
 
