@@ -80,7 +80,6 @@ class TradingService {
                             pairInstance.positionHigh = null;
                             pairInstance.positionLow = null;
                             await heroku.updateOrderStatus(pairInstance);
-                            await heroku.updateHighAndLow(pairInstance);
                         }
                     }
     
@@ -92,7 +91,6 @@ class TradingService {
                             pairInstance.positionHigh = null;
                             pairInstance.positionLow = null;
                             await heroku.updateOrderStatus(pairInstance);
-                            await heroku.updateHighAndLow(pairInstance);
                         }
                     }
                 }
@@ -123,7 +121,6 @@ class TradingService {
                             console.log("ORDER",buyOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                             await heroku.updateOrderStatus(pairInstance);
-                            await heroku.updateHighAndLow(pairInstance);
                         }
 
                     } catch (err) {
@@ -149,7 +146,6 @@ class TradingService {
                             console.log("ORDER",sellOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
                             await heroku.updateOrderStatus(pairInstance);
-                            await heroku.updateHighAndLow(pairInstance);
                         }
 
                    } catch (err) {

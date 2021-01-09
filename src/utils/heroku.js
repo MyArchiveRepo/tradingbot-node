@@ -12,7 +12,9 @@ class HerokuWrapper {
         let vars = {};
         vars['ORDER_STATUS'] = params.orderStatus;
         vars['ENTRY'] = params.positionEntry;
-
+        vars['POSITION_HIGH'] = pairInstance.positionHigh;
+        vars['POSITION_LOW'] = pairInstance.positionLow;
+        
         return await this.heroku.patch(
             `/apps/${this.appName}/config-vars`,
             {
