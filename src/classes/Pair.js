@@ -198,8 +198,8 @@ module.exports = class Pair {
 
     updateHighAndLow(candle) {
         if (this.orderStatus == orderStatus.BUY_LONG || this.orderStatus == orderStatus.SELL_SHORT) {
-            this.positionHigh = (candle.open >= this.positionHigh) ? candle.open : this.positionHigh;
-            this.positionLow = (candle.open <= this.positionLow) ? candle.open : this.positionLow;
+            this.positionHigh = (parseFloat(candle.open) >= parseFloat(this.positionHigh)) ? candle.open : this.positionHigh;
+            this.positionLow = (parseFloat(candle.open) <= parseFloat(this.positionLow)) ? candle.open : this.positionLow;
         }
     }
 
