@@ -105,8 +105,7 @@ class TradingService {
 
                 if (signal.isBuy && checkEntryLongConditions(pairInstance)) {
                     try {
-
-                        await sleep(wait_time) 
+                        
                         let buyOrder = await this.binance.mgBuyLong(pairInstance,this.leverage);
                         if(buyOrder){
                             pairInstance.orderStatus = orderStatus.BUY_LONG;
