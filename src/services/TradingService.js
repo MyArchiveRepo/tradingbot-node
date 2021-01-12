@@ -84,7 +84,7 @@ class TradingService {
                     }
     
                     if(pairInstance.orderStatus == orderStatus.SELL_SHORT){
-                        let closeSell = await this.binance.mgCloseSellShort(pairInstance);
+                        let closeSell = await this.binance.repayAllQuoteDebts(pairInstance);
                         if(closeSell) {
                             pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                             pairInstance.positionEntry = null;
@@ -105,11 +105,6 @@ class TradingService {
 
                 if (signal.isBuy && checkEntryLongConditions(pairInstance)) {
                     try {
-
-                        if(pairInstance.orderStatus == orderStatus.SELL_CLOSED){
-                            let sellReloadOrder = await this.binance.sellShort(pairInstance)
-                            if(sellReloadOrder) console.log("RELOAD ORDER",sellReloadOrder)
-                        }
 
                         await sleep(wait_time) 
                         let buyOrder = await this.binance.mgBuyLong(pairInstance,this.leverage);
