@@ -84,7 +84,7 @@ class TradingService {
                     }
     
                     if(pairInstance.orderStatus == orderStatus.SELL_SHORT){
-                        let closeSell = await this.binance.repayAllQuoteDebts(pairInstance);
+                        let closeSell = await this.binance.repayAllBaseDebts(pairInstance);
                         if(closeSell) {
                             pairInstance.orderStatus = orderStatus.SELL_CLOSED;
                             pairInstance.positionEntry = null;
