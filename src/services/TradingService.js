@@ -15,7 +15,7 @@ const heroku = new HerokuWrapper({
 
 class TradingService {
 
-    leverage = 2;
+    leverage = 3;
     wsCandles = {};
     config = {};
     constructor(config) {
