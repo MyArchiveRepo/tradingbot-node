@@ -18,6 +18,8 @@ class TradingService {
     leverage = 3;
     wsCandles = {};
     config = {};
+    isStatusChanged = false;
+
     constructor(config) {
         this.binance = new Exchange();
         this.symbol = config.symbol;
@@ -79,7 +81,7 @@ class TradingService {
                             pairInstance.positionEntry = null;
                             pairInstance.positionHigh = null;
                             pairInstance.positionLow = null;
-                            await heroku.updateOrderStatus(pairInstance);
+                            this.isStatusChanged = true
                         }
                     }
     
@@ -90,7 +92,7 @@ class TradingService {
                             pairInstance.positionEntry = null;
                             pairInstance.positionHigh = null;
                             pairInstance.positionLow = null;
-                            await heroku.updateOrderStatus(pairInstance);
+                            this.isStatusChanged = true
                         }
                     }
                 }
@@ -114,7 +116,7 @@ class TradingService {
                             pairInstance.positionLow = buyOrder.fills[0].price || buyOrder.price;
                             console.log("ORDER",buyOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
-                            await heroku.updateOrderStatus(pairInstance);
+                            this.isStatusChanged = true
                         }
 
                     } catch (err) {
@@ -139,7 +141,7 @@ class TradingService {
                             pairInstance.positionLow = sellOrder.fills[0].price || sellOrder.price;
                             console.log("ORDER",sellOrder)
                             console.log("ENTRY",pairInstance.positionEntry)
-                            await heroku.updateOrderStatus(pairInstance);
+                            this.isStatusChanged = true
                         }
 
                    } catch (err) {
@@ -148,6 +150,13 @@ class TradingService {
                 }
 
             }
+
+            if(this.isStatusChanged){
+                console.log("Exit from check signal loop. Status changed.")
+                await heroku.updateOrderStatus(pairInstance);
+                return;
+            }
+
         } catch (err) {
             console.log(err);
         }
